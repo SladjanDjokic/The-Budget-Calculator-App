@@ -41,13 +41,16 @@ export default class CompanyTableMock extends TableMock implements ICompanyTable
 	async getByPage(
 		pagination: RedSky.PagePagination,
 		sort: RedSky.SortQuery,
-		filter: RedSky.FilterQuery,
-		companyId?: number
+		filter: RedSky.FilterQuery
 	): Promise<any> {
 		return {
 			data: this.companies.slice((pagination.page - 1) * pagination.perPage, pagination.perPage),
 			total: this.companies.length
 		};
+	}
+
+	async getDetails(companyId: number): Promise<Api.Company.Res.Details> {
+		return this.companies.find((company) => company.id === companyId);
 	}
 
 	getByVanityUrl(hostname: string) {

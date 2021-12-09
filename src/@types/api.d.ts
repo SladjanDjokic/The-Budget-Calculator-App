@@ -317,14 +317,28 @@ declare namespace Api {
 
 	export namespace Brand {
 		export namespace Req {
+			export interface Get {
+				id: number;
+			}
+
 			export interface Location {
-				brandId: number;
+				id: number;
+			}
+
+			export namespace Location {
+				export interface Get {
+					id: number;
+				}
 			}
 		}
 		export namespace Res {
-			export interface Location extends Model.BrandLocation {}
-
 			export interface Get extends Model.Brand {}
+			export interface Details extends Get {}
+			export interface Location extends Model.BrandLocation {}
+			export namespace Location {
+				export interface Get extends Model.BrandLocation {}
+				export interface Details extends Model.BrandLocation {}
+			}
 		}
 	}
 
@@ -420,6 +434,10 @@ declare namespace Api {
 				newAdminPassword: string;
 			}
 
+			export interface Details {
+				id: number;
+			}
+
 			export interface Get {
 				id?: number;
 				ids?: number[];
@@ -448,6 +466,8 @@ declare namespace Api {
 			export interface Update extends Model.Company {}
 
 			export interface Get extends Model.Company {}
+
+			export interface Details extends Get {}
 
 			export interface GetCompanyAndClientVariables
 				extends Pick<Model.Company, 'id' | 'name' | 'squareLogoUrl' | 'wideLogoUrl'> {

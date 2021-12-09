@@ -2,6 +2,7 @@ import { RsError } from '../../utils/errors';
 import { ObjectUtils } from '../../utils/utils';
 import IBrandTable from '../interfaces/IBrandTable';
 import TableMock from './table.db.mock';
+import Table from '../Table';
 
 export default class BrandTableMock extends TableMock implements IBrandTable {
 	getForCompanyCalls: number = 0;
@@ -20,6 +21,10 @@ export default class BrandTableMock extends TableMock implements IBrandTable {
 	async getAllForCompany(companyId: number): Promise<Model.Brand[]> {
 		throw new RsError('SERVICE_UNAVAILABLE', 'Unimplemented method');
 	}
+	async getDetails(brandId: number, companyId?: number): Promise<Api.Brand.Res.Details> {
+		throw new RsError('SERVICE_UNAVAILABLE', 'Unimplemented method');
+	}
+
 	getManyByIds: (objIds: number[]) => Promise<any>;
 	getByPage: null;
 	update: (id: number, tableObj: any) => Promise<any>;

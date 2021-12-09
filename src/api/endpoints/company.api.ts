@@ -16,6 +16,7 @@ export default class CompanyApi extends GeneralApi {
 		const pre = this.endpointPrefix;
 
 		this.app.get(pre, this.get);
+		this.app.get(`${pre}/details`, this.getDetails);
 		this.app.get(`${pre}/paged`, this.getByPage);
 		this.app.get(`${pre}/company-and-variables`, this.getCompanyAndClientVariables);
 		this.app.put(`${pre}/unauthorized-pages`, this.updateUnauthorizedPages);
@@ -46,10 +47,18 @@ export default class CompanyApi extends GeneralApi {
 	@boundMethod
 	@publicUrl('GET', '/company/paged')
 	@accessScopes('COMPANY')
-	async getByPage(req: RsRequest<RedSky.PageQuery>, res: RsResponse<Api.Company.Res.Get[]>) {
+	async getByPage(req: RsRequest<RedSky.PageQuery>, res: RsResponse<Api.Company.Res.Details[]>) {
 		let pageQuery = this.pageFilterData(req.data);
 		let companyPagedResponse = await this.companyService.getByPage(pageQuery);
 		res.sendPaginated(companyPagedResponse.data, companyPagedResponse.total);
+	}
+
+	@boundMethod
+	@publicUrl('GET', '/company/paged')
+	@accessScopes('COMPANY')
+	async getDetails(req: RsRequest<Api.Company.Req.Get>, res: RsResponse<Api.Company.Res.Details>) {
+		let companyDetails = await this.companyService.getDetailsById(req.data.id);
+		res.send(companyDetails);
 	}
 
 	@boundMethod

@@ -823,6 +823,14 @@ declare namespace Model {
 		expireOn: Date | string;
 	}
 
+	export interface UserPointAllocationRecord {
+		id: number;
+		userPointEarnedId: number;
+		userPointSpentId: number;
+		amount: number;
+		createdOn: Date | string;
+	}
+
 	export interface UserRole {
 		id: number;
 		name: string;

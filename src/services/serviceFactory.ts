@@ -110,7 +110,11 @@ class ServiceFactory {
 			redisClient,
 			dbSingleton.get().userAction
 		);
-		this.services['UserPointService'] = new UserPoint(dbSingleton.get().userPoint, dbSingleton.get().user);
+		this.services['UserPointService'] = new UserPoint(
+			dbSingleton.get().userPoint,
+			dbSingleton.get().user,
+			dbSingleton.get().userPointAllocationRecord
+		);
 		this.services['AccommodationService'] = new Accommodation(
 			destinationSystemProvider,
 			redisClient,

@@ -14,6 +14,13 @@ export default class CompanyValidation extends Validation {
 		'company/'
 	);
 
+	'GET:details:' = JsonDecoder.object<Api.Company.Req.Details>(
+		{
+			id: JsonDecoder.number
+		},
+		'company/details'
+	);
+
 	'POST:' = JsonDecoder.objectStrict<Api.Company.Req.Create>(
 		{
 			name: JsonDecoder.string,

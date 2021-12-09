@@ -1,7 +1,7 @@
 import UserPointService from '../../services/userPoint/userPoint.service';
 import chai from 'chai';
 import dbSingleton from '../../database/dbSingleton';
-import { WebUtils } from '../../utils/utils';
+import { ObjectUtils, WebUtils } from '../../utils/utils';
 import serviceFactory from '../../services/serviceFactory';
 import userPointResource from '../resources/userPoint.service.resource';
 import UserPoint from '../../database/objects/userPoint.db';
@@ -21,6 +21,10 @@ describe('UserPointService', function () {
 		const db: UserPoint = dbSingleton.get().userPoint;
 		// Clean up test data
 		await WebUtils.sleep(1000);
+		if (createdUserPoints?.id)
+			await db.dbUtil.db.runQuery('DELETE FROM userPointAllocationRecord WHERE userPointSpentId=?', [
+				createdUserPoints.id
+			]);
 		await db.dbUtil.db.runQuery('DELETE FROM userPoint WHERE id = ?;', [createdUserPoints.id]);
 	});
 
@@ -84,6 +88,43 @@ describe('UserPointService', function () {
 			);
 			expect(result.id).to.equal(createdUserPoints.id);
 			expect(result.status).to.equal('REVOKED');
+		});
+	});
+
+	describe('Generate user point allocation', function () {
+		it('should throw an error that there are no available points for allocation', async function () {
+			try {
+				await userPointService['generateFirstInFirstOutPointAllocation'](userPointResource.userPoint);
+			} catch (e) {
+				chai.expect(e).to.exist;
+				chai.expect(e.err).to.be.a('string').and.equal('INVALID_PAYMENT');
+				chai.expect(e.msg)
+					.to.be.a('string')
+					.and.equal('Unable to find available points for payment allocation');
+			}
+		});
+		it('should allocate a first in first out point allocation for redeemed points', async function () {
+			await userPointService['generateFirstInFirstOutPointAllocation'](createdUserPoints);
+			const userPointsAllocations: Model.UserPointAllocationRecord[] = await userPointService.getPointAllocationByUserPointId(
+				createdUserPoints.id
+			);
+			chai.expect(userPointsAllocations).to.exist.and.be.an('array');
+			chai.expect(userPointsAllocations.length).to.be.greaterThan(0);
+		});
+		it('should throw an error and rollback point allocation due to not having enough points available', async function () {
+			try {
+				await userPointService['generateFirstInFirstOutPointAllocation']({
+					...createdUserPoints,
+					pointAmount: 99999999
+				});
+			} catch (e) {
+				const userPointsAllocations: Model.UserPointAllocationRecord[] = await userPointService.getPointAllocationByUserPointId(
+					createdUserPoints.id
+				);
+				chai.expect(e.err).to.exist.and.equal('INVALID_PAYMENT');
+				chai.expect(userPointsAllocations).to.be.an('array');
+				chai.expect(userPointsAllocations.length).to.equal(0);
+			}
 		});
 	});
 });

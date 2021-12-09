@@ -6,6 +6,7 @@ export default interface ICompanyTable extends ITable {
 	columns: string[];
 	getById: (id: number) => Promise<Api.Company.Res.Get>;
 	getCompanyAndClientVariables: (id: number) => Promise<Api.Company.Res.GetCompanyAndClientVariables>;
+	getDetails: (companyId: number) => Promise<Api.Company.Res.Details>;
 	isDomainUnique: (rootDomain: string) => Promise<any>;
 	getByDomain: (domain: string) => Promise<any>;
 	getByName: (name: string) => Promise<any>;

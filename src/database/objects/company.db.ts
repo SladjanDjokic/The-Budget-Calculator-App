@@ -27,6 +27,32 @@ export default class Company extends Table implements ICompanyTable {
 		return rows;
 	}
 
+	async getByPage(
+		pagination: RedSky.PagePagination,
+		sort: RedSky.SortQuery,
+		filter: RedSky.FilterQuery
+	): Promise<RedSky.RsPagedResponseData<Api.Company.Res.Details[]>> {
+		let pageQuery = this.buildPageQuery(sort, this.tableName, filter);
+		const pageLimit = Math.ceil((pagination.page - 1) * pagination.perPage);
+		let companies = await this.db.runQuery(
+			`SELECT *
+             FROM company
+             WHERE ${pageQuery.filterQuery} ${pageQuery.sortQuery} 
+			LIMIT ?
+             OFFSET ?;
+            SELECT Count(id) as total
+            FROM company
+            WHERE ${pageQuery.filterQuery};`,
+			[pagination.perPage, pageLimit]
+		);
+
+		return { data: companies[0], total: companies[1][0].total };
+	}
+
+	async getDetails(companyId): Promise<Api.Company.Res.Details> {
+		return this.db.queryOne('SELECT * FROM company WHERE id=?;', [companyId]);
+	}
+
 	getCompanyAndClientVariables(id: number): Promise<Api.Company.Res.GetCompanyAndClientVariables> {
 		return this.db.queryOne(
 			`SELECT 

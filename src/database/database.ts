@@ -56,6 +56,7 @@ import Amenity, { amenity } from './objects/amenity.db';
 import Experience, { experience } from './objects/experience.db';
 import DestinationExperience, { destinationExperience } from './objects/destinationExperience.db';
 import Rate, { rate } from './objects/rate.db';
+import UserPointAllocationRecord from './objects/userPointAllocationRecord.db';
 
 export default class Database {
 	user: User;
@@ -111,6 +112,7 @@ export default class Database {
 	userPaymentMethod: UserPaymentMethod;
 	userPermission: UserPermission;
 	userPoint: UserPoint;
+	userPointAllocationRecord: UserPointAllocationRecord;
 	userSegment: UserSegment;
 	userSocialMedia: UserSocialMedia;
 	vendor: VendorView;
@@ -170,6 +172,7 @@ export default class Database {
 		this.userPaymentMethod = userPaymentMethod(dbArgs);
 		this.userPermission = userPermission(dbArgs);
 		this.userPoint = userPoint(dbArgs);
+		this.userPointAllocationRecord = new UserPointAllocationRecord(dbArgs.connection, 'userPointAllocationRecord');
 		this.userSegment = userSegment(dbArgs);
 		this.userSocialMedia = userSocialMedia(dbArgs);
 		this.vendor = vendor(dbArgs);

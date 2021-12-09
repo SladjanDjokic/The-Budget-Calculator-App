@@ -9,19 +9,36 @@ import ICompanyService from '../company/ICompanyService';
 import IUserTable from '../../database/interfaces/IUserTable';
 import { ServiceName } from '../serviceFactory';
 import CompanyService from '../company/company.service';
+import IUserPointAllocationRecordTable, {
+	UserPointBreakdown
+} from '../../database/interfaces/IUserPointAllocationRecordTable';
+import { ObjectUtils } from '../../utils/utils';
 
 export default class UserPointService extends Service implements IUserPointService {
 	companyService: ICompanyService;
 	userService: UserService;
-	constructor(public readonly userPointTable: UserPoint, private readonly userTable: IUserTable) {
+
+	constructor(
+		public readonly userPointTable: UserPoint,
+		private readonly userTable: IUserTable,
+		private readonly userPointAllocationRecordTable: IUserPointAllocationRecordTable
+	) {
 		super();
 	}
+
 	start(services: Partial<Record<ServiceName, Service>>) {
 		this.companyService = services['CompanyService'] as CompanyService;
 		this.userService = services['UserService'] as UserService;
 	}
 
 	async create(pointObj: UserPointCreate): Promise<Model.UserPoint> {
+		const requiresAllocationStatus: Omit<Model.UserPointStatusTypes, 'PENDING' | 'RECEIVED'>[] = [
+			'REVOKED',
+			'EXPIRED',
+			'REDEEMED',
+			'CANCELED',
+			'REFUNDED'
+		];
 		if (!pointObj.pointType || !pointObj.pointAmount)
 			throw new RsError('BAD_REQUEST', 'Missing user point properties');
 		const createdPoints: Model.UserPoint = await this.userPointTable.create(pointObj);
@@ -38,6 +55,9 @@ export default class UserPointService extends Service implements IUserPointServi
 					-createdPoints.pointAmount,
 					createdPoints.status
 				);
+			}
+			if (requiresAllocationStatus.includes(createdPoints.status)) {
+				await this.generateFirstInFirstOutPointAllocation(createdPoints);
 			}
 		}
 		return createdPoints;
@@ -113,13 +133,56 @@ export default class UserPointService extends Service implements IUserPointServi
 		if (!pointTableResult || !userTableResult) return null;
 		const availablePoints = userTableResult.availablePoints + pointTableResult.pointAmount;
 		await this.userTable.update(userTableResult.id, { availablePoints });
-		return this.userPointTable.create({
-			userId: userTableResult.id,
-			reservationId,
+		return this.userPointTable.update(pointTableResult.id, {
 			status: 'REFUNDED',
 			reason: 'Reservation Cancellation',
 			pointType: 'BOOKING',
 			pointAmount: pointTableResult.pointAmount
 		});
+	}
+
+	getPointAllocationByUserPointId(userPointId: number): Promise<Model.UserPointAllocationRecord[]> {
+		return this.userPointAllocationRecordTable.getPointAllocationForSpentPoints(userPointId);
+	}
+
+	private async generateFirstInFirstOutPointAllocation(createdPoints: Model.UserPoint): Promise<void> {
+		let remainingPointsToAllocate: number = createdPoints.pointAmount;
+		const pointLimitRequirement = 1;
+		const availablePointBreakdown: UserPointBreakdown[] = await this.userPointAllocationRecordTable.getAvailablePointBreakdownByUserId(
+			createdPoints.userId,
+			pointLimitRequirement
+		);
+		if (!ObjectUtils.isArrayWithData(availablePointBreakdown))
+			throw new RsError('INVALID_PAYMENT', 'Unable to find available points for payment allocation');
+		for (let availablePoints of availablePointBreakdown) {
+			if (!remainingPointsToAllocate || remainingPointsToAllocate <= 0) break;
+			if (availablePoints.availablePoints === 0) continue;
+			if (remainingPointsToAllocate >= availablePoints.availablePoints) {
+				await this.userPointAllocationRecordTable.create({
+					userPointEarnedId: availablePoints.id,
+					userPointSpentId: createdPoints.id,
+					amount: availablePoints.availablePoints
+				});
+			} else {
+				await this.userPointAllocationRecordTable.create({
+					userPointEarnedId: availablePoints.id,
+					userPointSpentId: createdPoints.id,
+					amount: Number(availablePoints.availablePoints - remainingPointsToAllocate)
+				});
+			}
+			remainingPointsToAllocate = remainingPointsToAllocate - availablePoints.availablePoints;
+		}
+		if (remainingPointsToAllocate > 0) {
+			logger.error(`Points are still remaining to be allocated and no more are available to allocate`, {
+				remainingPointsToAllocate,
+				availablePointBreakdown,
+				createdPoints
+			});
+			await this.userPointAllocationRecordTable.rollBackSpentPoints(createdPoints.id);
+			throw new RsError(
+				'INVALID_PAYMENT',
+				'Points are still remaining to be allocated and no more are available to allocate'
+			);
+		}
 	}
 }

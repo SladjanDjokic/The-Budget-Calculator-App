@@ -96,6 +96,28 @@ export default class BrandService extends Service {
 		}
 	}
 
+	getDetails(brandId: number, companyId?: number): Promise<Api.Brand.Res.Details> {
+		return this.brandTable.getDetails(brandId, companyId);
+	}
+
+	getByPage(
+		pageQuery: RedSky.PageQuery,
+		companyId?: number
+	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Details[]>> {
+		return this.brandTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter, companyId);
+	}
+
+	getLocationDetails(brandLocationId: number, companyId?: number): Promise<Api.Brand.Res.Location.Details> {
+		return this.brandLocationTable.getDetails(brandLocationId, companyId);
+	}
+
+	getLocationsByPage(
+		pageQuery: RedSky.PageQuery,
+		companyId?: number
+	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Location.Details[]>> {
+		return this.brandLocationTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter, companyId);
+	}
+
 	create(brand: BrandToCreate): Promise<Model.Brand> {
 		return this.brandTable.create(brand);
 	}

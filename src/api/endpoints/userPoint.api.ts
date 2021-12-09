@@ -30,7 +30,7 @@ export default class UserPointApi extends GeneralApi {
 		const pointAward = ObjectUtils.toBoolean(req.data.award);
 		if (pointAward) obj.status = 'RECEIVED';
 		else obj.status = 'REVOKED';
-		let createdObj = ((await this.userPointService.create(obj)) as unknown) as Api.UserPoint.Res.Get;
+		const createdObj: Api.UserPoint.Res.Get = await this.userPointService.create(obj);
 		this.systemActionLog.create({
 			...this.systemActionLog.formatApiLogItem(req),
 			action: 'CREATE',

@@ -125,8 +125,12 @@ export default class CompanyService extends Service implements ICompanyService {
 		return this.companyTable.getById(id);
 	}
 
-	getByPage(pageQuery: RedSky.PageQuery): Promise<RedSky.RsPagedResponseData<Api.Company.Res.Get[]>> {
+	getByPage(pageQuery: RedSky.PageQuery): Promise<RedSky.RsPagedResponseData<Api.Company.Res.Details[]>> {
 		return this.companyTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter);
+	}
+
+	getDetailsById(companyId: number): Promise<Api.Company.Res.Details> {
+		return this.companyTable.getDetails(companyId);
 	}
 
 	getCompanyAndClientVariables(id: number): Promise<Api.Company.Res.GetCompanyAndClientVariables> {
