@@ -1,0 +1,15 @@
+/node_modules/*
+/.idea
+/.vscode
+config.*json
+.DS_Store
+/Database/UserFiles/ProductImages/*.jpg
+/Database/UserFiles/ProductImages/*.png
+/Database/UserFiles/ProfilePictures/*.png
+/Database/UserFiles/ProfilePictures/*.jpg
+yarn-error.log
+/src/tmp
+/api/endpoints/public/*.json
+package-lock.json
+/dist/*
+/src/database/UserFiles/ProductImages/

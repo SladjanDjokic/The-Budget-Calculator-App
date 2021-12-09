@@ -1,0 +1,126 @@
+image: node:14
+
+# This folder is cached between builds
+# http://docs.gitlab.com/ce/ci/yaml/README.html#cache
+
+stages:
+    - clean
+    - test
+    - deploy
+
+Clean Node Modules:
+    stage: clean
+    script:
+        - rm package-lock.json || true
+        - rm yarn.lock || true
+        - echo "Installing Node Modules"
+        - npm config set @bit:registry https://node.bit.dev
+        - yarn install --silent
+    only:
+        changes:
+            - package.json
+    cache:
+        paths:
+            - node_modules/
+        policy: push
+
+Prettier Check:
+    stage: test
+    script:
+        - echo "Checking for prettyness"
+        - yarn run prettier:check
+    cache:
+        paths:
+            - node_modules/
+        policy: pull
+
+Service Tests:
+    stage: test
+    script:
+        - echo "Running service tests..."
+        - cp $CONFIG_FILE config.json
+        - yarn run testServices
+    cache:
+        paths:
+            - node_modules/
+        policy: pull
+
+Integration Tests:
+    stage: test
+    script:
+        - echo "Running integration tests..."
+        - cp $CONFIG_FILE config.json
+        - yarn run testIntegrations
+    cache:
+        paths:
+            - node_modules/
+        policy: pull
+
+Database Tests:
+    stage: test
+    script:
+        - echo "Running database tests..."
+        - cp $CONFIG_FILE config.json
+        - yarn run testDatabase
+    cache:
+        paths:
+            - node_modules/
+        policy: pull
+
+Generic Tests:
+    stage: test
+    script:
+        - echo "Running generic tests..."
+        - cp $CONFIG_FILE config.json
+        - yarn run testGeneric
+    cache:
+        paths:
+            - node_modules/
+        policy: pull
+
+Only Test Check:
+    stage: test
+    script:
+        - echo "Only test check"
+        - (! grep -r --include="*.spec.ts" "describe.only" src/test)
+        - (! grep -r --include="*.spec.ts" "it.only" src/test)
+
+Deploy Sandbox:
+    stage: deploy
+    script:
+        - mkdir ~/.ssh
+        - cp $SAND_SSH_PRIV_KEY_FILE ~/.ssh/id_rsa
+        - chmod 700 ~/.ssh && chmod 600 ~/.ssh/*
+        - eval `ssh-agent -s`
+        - ssh-keygen -yf ~/.ssh/id_rsa >> ~/.ssh/id_rsa.pub
+        - ssh-add ~/.ssh/id_rsa
+        - echo "Test ssh connection"
+        - ssh -o StrictHostKeyChecking=no -T dev@sand.spireloyalty.com
+        - npm i -g pm2
+        - pm2 deploy sand update
+    cache:
+        paths:
+            - node_modules/
+        policy: pull
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "dev"'
+
+Deploy Production:
+    stage: deploy
+    script:
+        - mkdir ~/.ssh
+        - cp $SAND_SSH_PRIV_KEY_FILE ~/.ssh/id_rsa
+        - chmod 700 ~/.ssh && chmod 600 ~/.ssh/*
+        - eval `ssh-agent -s`
+        - ssh-keygen -yf ~/.ssh/id_rsa >> ~/.ssh/id_rsa.pub
+        - ssh-add ~/.ssh/id_rsa
+        - echo "Test ssh connection"
+        - ssh -o StrictHostKeyChecking=no -T dev@sand.spireloyalty.com
+        - npm i -g pm2
+        - pm2 deploy prod update
+    cache:
+        paths:
+            - node_modules/
+        policy: pull
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "master"'
