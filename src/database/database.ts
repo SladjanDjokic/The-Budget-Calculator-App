@@ -57,6 +57,8 @@ import Experience, { experience } from './objects/experience.db';
 import DestinationExperience, { destinationExperience } from './objects/destinationExperience.db';
 import Rate, { rate } from './objects/rate.db';
 import UserPointAllocationRecord from './objects/userPointAllocationRecord.db';
+import TierMultiplier, { tierMultiplier } from './objects/tierMultiplier.db';
+import UserBusiness, { userBusiness } from './objects/userBusiness.db';
 
 export default class Database {
 	user: User;
@@ -104,9 +106,11 @@ export default class Database {
 	systemActionLog: SystemActionLog;
 	tier: Tier;
 	tierFeature: TierFeature;
+	tierMultiplier: TierMultiplier;
 	upsellPackage: UpsellPackage;
 	userAction: UserAction;
 	userAddress: UserAddress;
+	userBusiness: UserBusiness;
 	userCoupon: UserCoupon;
 	userCompletedCampaign: UserCompletedCampaign;
 	userPaymentMethod: UserPaymentMethod;
@@ -165,8 +169,10 @@ export default class Database {
 		this.systemActionLog = systemActionLog(dbArgs);
 		this.tier = tier(dbArgs);
 		this.tierFeature = tierFeature(dbArgs);
+		this.tierMultiplier = tierMultiplier(dbArgs);
 		this.userAction = userAction(dbArgs);
 		this.userAddress = userAddress(dbArgs);
+		this.userBusiness = userBusiness(dbArgs);
 		this.userCoupon = userCoupon(dbArgs);
 		this.userCompletedCampaign = userCompletedCampaign(dbArgs);
 		this.userPaymentMethod = userPaymentMethod(dbArgs);

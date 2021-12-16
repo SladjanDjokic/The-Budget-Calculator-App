@@ -168,7 +168,9 @@ export default class Destination extends Table implements IDestinationTable {
 				IFNULL(destinationMedia.media, '${Table.mediaNotFoundObject}') media,
 				IFNULL(experiences.experiences, '[]') experiences,
 				IFNULL(destinationAccommodationTypes.accommodationTypes, '[]') accommodationTypes,
-				IFNULL(destinationAccommodations.accommodations, '[]') accommodations
+				IFNULL(destinationAccommodations.accommodations, '[]') accommodations,
+       			destination.isActive,
+       			destination.loyaltyStatus
 			FROM destination
 			    ${regionTypeQuery}
 				# destination media
@@ -292,6 +294,7 @@ export default class Destination extends Table implements IDestinationTable {
 			destination.latitude,
 			destination.longitude,
 		    destination.isActive,
+		    destination.loyaltyStatus,
 			destination.logoUrl,
 			destination.heroUrl,
        		destination.reviewRating,

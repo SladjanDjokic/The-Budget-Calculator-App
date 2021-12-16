@@ -2,13 +2,26 @@ import Table from '../Table';
 import mysql from 'mysql';
 import { ObjectUtils } from '../../utils/utils';
 import ITierTable from '../interfaces/ITierTable';
+import { TierToCreate } from '../../services/tier/tier.service';
 
 export default class Tier extends Table implements ITierTable {
 	constructor(dbArgs) {
 		super(dbArgs);
 	}
+
+	delete: null;
+	deleteMany: null;
+	deleteForTestOnly(tierId: number) {
+		return super.delete(tierId);
+	}
+
 	getAll(): Promise<Model.Tier[]> {
 		return this.db.runQuery(`SELECT * FROM tier;`);
+	}
+
+	async create(tierToCreate: TierToCreate): Promise<Model.Tier> {
+		const result = await this.db.runQuery('INSERT INTO ?? SET ?;', [this.tableName, tierToCreate]);
+		return super.getById(result.insertId);
 	}
 
 	async getByCompanyId(companyId: number) {
@@ -23,7 +36,7 @@ export default class Tier extends Table implements ITierTable {
 		);
 	}
 
-	async getById(tierId: number) {
+	getById(tierId: number): Promise<Api.Tier.Res.Get> {
 		return this.db.queryOne(
 			`SELECT
 			    tier.*,

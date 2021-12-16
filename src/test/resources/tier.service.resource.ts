@@ -2,12 +2,16 @@ import { DateUtils } from '../../utils/utils';
 import TierTableMock from '../../database/mocks/tier.db.mock';
 import TierFeatureTableMock from '../../database/mocks/tierFeature.db.mock';
 import MediaServiceMock from '../../services/media/media.service.mock';
+import TierMultiplierTableMock from '../../database/mocks/tierMultiplier.db.mock';
 
 export default class TierResource {
+	adminUserId: number = 1;
 	existingTier: Model.Tier;
 	tierTable: TierTableMock;
 	existingFeature: Model.TierFeature;
+	existingMultiplier: Model.TierMultiplier;
 	tierFeatureTable: TierFeatureTableMock;
+	tierMultiplierTable: TierMultiplierTableMock;
 	tierCreate: Api.Tier.Req.Create;
 	tierUpdate: Api.Tier.Req.Update;
 	pagination: RedSky.PagePagination;
@@ -51,7 +55,6 @@ export default class TierResource {
 			id: 1,
 			name: 'test tier',
 			description: 'test tier description',
-			accrualRate: 5,
 			isActive: 1,
 			isAnnualRate: 0,
 			threshold: 1000,
@@ -71,7 +74,20 @@ export default class TierResource {
 			TierFeatureId: this.existingFeature.id
 		};
 
-		this.tierTable = new TierTableMock({ [this.existingTier.id]: this.existingTier }, [existingMap]);
+		this.existingMultiplier = {
+			id: 1,
+			tierId: this.existingTier.id,
+			creatingUserId: this.adminUserId,
+			multiplier: 1.25,
+			createdOn: new Date()
+		};
+
+		this.tierMultiplierTable = new TierMultiplierTableMock([this.existingMultiplier]);
+		this.tierTable = new TierTableMock(
+			{ [this.existingTier.id]: this.existingTier },
+			[existingMap],
+			this.tierMultiplierTable
+		);
 		this.tierFeatureTable = new TierFeatureTableMock({ [this.existingFeature.id]: this.existingFeature });
 		this.startingMediaIds = [1, 2, 3, 4, 5]; //arbitrary numbers, no significance
 		this.newMediaIds = [3, 4, 5, 6, 7]; //arbitrary numbers, no significance

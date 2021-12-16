@@ -21,6 +21,7 @@ export default class CompanyApi extends GeneralApi {
 		this.app.get(`${pre}/company-and-variables`, this.getCompanyAndClientVariables);
 		this.app.put(`${pre}/unauthorized-pages`, this.updateUnauthorizedPages);
 		this.app.put(`${pre}/available-pages`, this.updateAvailablePages);
+		this.app.patch(`${pre}`, this.updateCompany);
 		this.app.get(`${pre}/available-pages`, this.getAvailablePages);
 
 		this.app.put(pre, this.update);
@@ -54,11 +55,18 @@ export default class CompanyApi extends GeneralApi {
 	}
 
 	@boundMethod
-	@publicUrl('GET', '/company/paged')
+	@publicUrl('GET', '/company')
 	@accessScopes('COMPANY')
 	async getDetails(req: RsRequest<Api.Company.Req.Get>, res: RsResponse<Api.Company.Res.Details>) {
 		let companyDetails = await this.companyService.getDetailsById(req.data.id);
-		res.send(companyDetails);
+		res.sendData(companyDetails);
+	}
+
+	@boundMethod
+	@accessScopes('ADMINISTRATION')
+	async updateCompany(req: RsRequest<Api.Company.Req.Update>, res: RsResponse<Api.Company.Res.Details>) {
+		const result = await this.companyService.update(req.data.id, req.data);
+		res.sendData(result);
 	}
 
 	@boundMethod

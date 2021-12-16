@@ -511,6 +511,18 @@ export default class User extends Table implements IUserTable {
 		return this.db.queryOne(`SELECT * FROM tier WHERE id=(SELECT tierId FROM user WHERE id=?);`, [userId]);
 	}
 
+	getMultiplierForUser(userId: number): Promise<{ multiplier: number }> {
+		return this.db.queryOne(
+			`SELECT multiplier 
+			FROM tierMultiplier
+				JOIN userTier ON tierMultiplier.tierId = userTier.tierId
+			WHERE userTier.userId = ?
+			ORDER BY tierMultiplier.id DESC
+			LIMIT 1;`,
+			[userId]
+		);
+	}
+
 	getUsersByAccessScope(accessScope: Model.UserAccessScopeTypes): Promise<Model.User[]> {
 		return this.db.runQuery(
 			`WITH companyUserPermission AS (

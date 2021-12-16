@@ -37,6 +37,8 @@ const paymentMethod: Model.UserPaymentMethod = {
 const companyDetails: RedSky.IntegrationCompanyDetails = {
 	id: 1,
 	name: 'Red Sky',
+	isActive: 1,
+	loyaltyStatus: 'PENDING',
 	squareLogoUrl: null,
 	wideLogoUrl: null,
 	description: null,

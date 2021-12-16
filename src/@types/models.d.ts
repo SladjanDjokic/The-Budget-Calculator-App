@@ -4,6 +4,7 @@ declare namespace Model {
 	export type AccommodationTypes = 'HOTEL' | 'RENTAL';
 	export type AccommodationStatusType = 'ACTIVE' | 'INACTIVE' | 'DELETED';
 	export type AccommodationRoomClassType = 'Deluxe';
+	export type LoyaltyStatus = 'PENDING' | 'ACTIVE' | 'FROZEN';
 	export type UserAddressType = 'SHIPPING' | 'BILLING' | 'BOTH';
 	export type UserAccessScopeTypes =
 		| 'USER'
@@ -17,7 +18,9 @@ declare namespace Model {
 		| 'MEDIA_ACCESS'
 		| 'ORDERS'
 		| 'ANALYTICS'
-		| 'REAL_ESTATE';
+		| 'REAL_ESTATE'
+		| 'REPORTING';
+	export type UserReportingAccessLevelTypes = 'COMPANY_LEVEL' | 'DESTINATION_BRAND_LEVEL' | 'LOCATION_LEVEL' | 'NONE';
 	export type SystemActionLogActions =
 		| 'CREATE'
 		| 'DELETE'
@@ -191,7 +194,9 @@ declare namespace Model {
 		description: string;
 		createdOn: Date | string;
 		modifiedOn: Date | string;
-		externalId: string;
+		loyaltyStatus: LoyaltyStatus;
+		isActive: 0 | 1;
+		externalId: string | number;
 		metaData: any;
 	}
 
@@ -206,6 +211,7 @@ declare namespace Model {
 		zip: string;
 		country: string;
 		isActive: 0 | 1;
+		loyaltyStatus: LoyaltyStatus;
 		externalId: string;
 		metaData: any;
 	}
@@ -274,6 +280,8 @@ declare namespace Model {
 		state: string;
 		zip: string;
 		country: string;
+		isActive: 0 | 1;
+		loyaltyStatus: LoyaltyStatus;
 	}
 
 	export interface CompanyGateway {
@@ -330,6 +338,7 @@ declare namespace Model {
 		reviewRating: number;
 		reviewCount: number;
 		isActive: 0 | 1;
+		loyaltyStatus: LoyaltyStatus;
 	}
 
 	export interface DestinationExperience {
@@ -516,6 +525,18 @@ declare namespace Model {
 		modifiedOn: Date | string;
 	}
 
+	export interface PointRates {
+		id: number;
+		companyId: number | null;
+		destinationId: number | null;
+		brandId: number | null;
+		brandLocationId: number | null;
+		createdOn: Date | string;
+		userId: number;
+		pointsPerDollar: number;
+		costPerPoint: number;
+	}
+
 	export interface PropertyType {
 		id: number;
 		name: string;
@@ -678,7 +699,6 @@ declare namespace Model {
 		createdOn: Date | string;
 		modifiedOn: Date | string;
 		isActive: 0 | 1;
-		accrualRate: number;
 		threshold: number;
 		isAnnualRate: 0 | 1;
 	}
@@ -693,6 +713,14 @@ declare namespace Model {
 	export interface TierFeatureMap {
 		tierId: number;
 		TierFeatureId: number;
+	}
+
+	export interface TierMultiplier {
+		id: number;
+		tierId: number;
+		multiplier: number;
+		createdOn: Date | string;
+		creatingUserId: number;
 	}
 
 	export interface UpsellPackage {
@@ -768,6 +796,19 @@ declare namespace Model {
 		modifiedOn: Date | string;
 	}
 
+	export interface UserBusiness {
+		id: number;
+		userId: number;
+		companyId: number;
+		destinationId: number;
+		brandId: number;
+		brandLocationId: number;
+		createdOn: Date | string;
+		creatingUserId: number;
+		revokedOn: Date | string;
+		revokingUserId: number;
+	}
+
 	export interface UserCoupon {
 		id: number;
 		companyId: number | null;
@@ -816,6 +857,7 @@ declare namespace Model {
 		pointType: PointTypes;
 		pointAmount: number;
 		reason: PointReason;
+		pointRatesId: number;
 		notes: string;
 		createdOn: Date | string;
 		modifiedOn: Date | string;

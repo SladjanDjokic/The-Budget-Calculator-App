@@ -276,15 +276,32 @@ export default class DestinationService extends Service {
 		searchOptions: Api.Destination.Req.Availability
 	): Redis.Availability[] {
 		let result: Redis.Availability[] = [];
+		let resultDestinationIds: number[] = [];
+		const disqualifiedDestinationIds: Set<number> = new Set();
+
+		function disqualify(destinationId: number) {
+			result = result.filter((destinationObject) => destinationObject.destinationId !== destinationId);
+			resultDestinationIds = resultDestinationIds.filter((id) => id !== destinationId);
+			disqualifiedDestinationIds.add(destinationId);
+			logger.debug(`Disqualified destination ${destinationId}`);
+		}
+
 		const numberOfNights: number = DateUtils.daysBetweenStartAndEndDates(
 			new Date(searchOptions.startDate),
 			new Date(searchOptions.endDate)
 		);
-		const destinations = cacheKeyValues.map((value) => ObjectUtils.smartParse(value) as Redis.Availability);
-		const containsDestinationId: number[] = [];
-		for (let destinationObj of destinations) {
-			if (!ObjectUtils.isArrayWithData(destinationObj.accommodations)) continue;
-			destinationObj.accommodations = destinationObj.accommodations.filter((accommodation) => {
+		const availabilities = cacheKeyValues.map((value) => ObjectUtils.smartParse(value) as Redis.Availability);
+		for (let availabilityObj of availabilities) {
+			const destinationId = availabilityObj.destinationId;
+			if (disqualifiedDestinationIds.has(destinationId)) continue;
+
+			if (!ObjectUtils.isArrayWithData(availabilityObj.accommodations)) {
+				disqualify(destinationId);
+				continue;
+			}
+
+			// Filter to only matching accommodations
+			availabilityObj.accommodations = availabilityObj.accommodations.filter((accommodation) => {
 				if (!!!accommodation.price.length) return;
 				// Handle occupancy
 				if (accommodation.maxSleeps < searchOptions.adultCount + searchOptions.childCount) return null;
@@ -300,21 +317,31 @@ export default class DestinationService extends Service {
 				});
 				if (!!accommodation.price.length) return accommodation;
 			});
-			if (!!!destinationObj.accommodations.length) {
-				result = result.filter(
-					(destinationObject) => destinationObject.destinationId !== destinationObj.destinationId
-				);
+
+			// If this destination and date have no matching accommodations, disqualify the destination
+			if (!!!availabilityObj.accommodations.length) {
+				disqualify(destinationId);
 				continue;
 			}
-			if (!containsDestinationId.includes(destinationObj.destinationId)) {
-				containsDestinationId.push(destinationObj.destinationId);
-				result.push(destinationObj);
+
+			if (!resultDestinationIds.includes(destinationId)) {
+				resultDestinationIds.push(destinationId);
+				result.push(availabilityObj);
+			} else {
+				const matchingDestination = result.find((d) => d.destinationId === destinationId);
+				if (!!!matchingDestination) {
+					logger.debug(`No matching destination for ${availabilityObj.destinationId}`);
+					continue;
+				}
+				matchingDestination.accommodations = DestinationService.getConsistentAccommodations(
+					matchingDestination.accommodations,
+					availabilityObj.accommodations
+				);
+				if (!ObjectUtils.isArrayWithData(matchingDestination.accommodations)) {
+					disqualify(destinationId);
+					continue;
+				}
 			}
-			const matchingDestination = result.find((d) => d.destinationId === destinationObj.destinationId);
-			matchingDestination.accommodations = this.getConsistentAccommodations(
-				matchingDestination.accommodations,
-				destinationObj.accommodations
-			);
 		}
 		return result;
 	}
@@ -333,7 +360,7 @@ export default class DestinationService extends Service {
 		return true;
 	}
 
-	private getConsistentAccommodations(
+	private static getConsistentAccommodations(
 		filteredAccommodations: Redis.AvailabilityAccommodation[],
 		nextAccommodations: Redis.AvailabilityAccommodation[]
 	): Redis.AvailabilityAccommodation[] {
@@ -341,13 +368,16 @@ export default class DestinationService extends Service {
 		for (let accommodation of filteredAccommodations) {
 			const matchingAccommodation = nextAccommodations.find((acc) => acc.id === accommodation.id);
 			if (!!!matchingAccommodation) continue;
-			accommodation.price = this.getConsistentPrices(accommodation.price, matchingAccommodation.price);
+			accommodation.price = DestinationService.getConsistentPrices(
+				accommodation.price,
+				matchingAccommodation.price
+			);
 			if (!!accommodation.price.length) result.push(accommodation);
 		}
 		return result;
 	}
 
-	private getConsistentPrices(
+	private static getConsistentPrices(
 		filteredPrices: Redis.AvailabilityAccommodationPrice[],
 		nextPrices: Redis.AvailabilityAccommodationPrice[]
 	): Redis.AvailabilityAccommodationPrice[] {

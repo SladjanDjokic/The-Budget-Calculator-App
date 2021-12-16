@@ -5,12 +5,21 @@ import { ObjectUtils } from '../../utils/utils';
 import IMediaService from '../media/IMediaService';
 import MediaService from '../media/media.service';
 import { ServiceName } from '../serviceFactory';
+import ITierMultiplierTable from '../../database/interfaces/ITierMultiplierTable';
 
-export interface TierToCreate extends Omit<Api.Tier.Req.Create, 'mediaDetails' | 'featureIds'> {}
+export interface TierToCreate
+	extends Pick<Model.Tier, 'name' | 'threshold'>,
+		Pick<Partial<Model.Tier>, 'description' | 'isAnnualRate'> {}
+export interface TierMultiplierToCreate
+	extends Pick<Model.TierMultiplier, 'tierId' | 'multiplier' | 'creatingUserId'> {}
 
 export default class TierService extends Service {
 	mediaService: IMediaService;
-	constructor(private readonly tierTable: ITierTable, private readonly tierFeatureTable: ITierFeatureTable) {
+	constructor(
+		private readonly tierTable: ITierTable,
+		private readonly tierFeatureTable: ITierFeatureTable,
+		private readonly tierMultiplierTable: ITierMultiplierTable
+	) {
 		super();
 	}
 
@@ -22,8 +31,16 @@ export default class TierService extends Service {
 		return this.tierTable.columns;
 	}
 
-	async create({ featureIds, mediaDetails, ...tierObj }: Api.Tier.Req.Create): Promise<Api.Tier.Res.Get> {
+	async create(
+		{ featureIds, mediaDetails, accrualRate, ...tierObj }: Api.Tier.Req.Create,
+		adminUserId: number
+	): Promise<Api.Tier.Res.Get> {
 		const newTier: Model.Tier = await this.tierTable.create(tierObj);
+		await this.tierMultiplierTable.create({
+			tierId: newTier.id,
+			multiplier: accrualRate,
+			creatingUserId: adminUserId
+		});
 		await this.tierTable.addFeature(newTier.id, featureIds);
 		await this.createMediaMapAndSetMediaProperty(mediaDetails, { tierId: newTier.id });
 		return this.tierTable.getById(newTier.id);
@@ -49,12 +66,17 @@ export default class TierService extends Service {
 		return this.tierFeatureTable.getById(featureId);
 	}
 
-	async update(tierId: number, tierUpdateObj: Api.Tier.Req.Update) {
+	async update(
+		tierId: number,
+		{ accrualRate, ...tierUpdateObj }: Api.Tier.Req.Update,
+		adminUserId: number
+	): Promise<Api.Tier.Res.Get> {
 		if (tierUpdateObj.featureIds) {
 			await this.tierTable.deleteFeaturesForTier(tierId);
 			await this.tierTable.addFeature(tierId, tierUpdateObj.featureIds);
 			delete tierUpdateObj.featureIds;
 		}
+		await this.tierMultiplierTable.create({ tierId, multiplier: accrualRate, creatingUserId: adminUserId });
 		return this.tierTable.update(tierId, tierUpdateObj);
 	}
 
@@ -62,8 +84,9 @@ export default class TierService extends Service {
 		return this.tierFeatureTable.update(tierFeatureId, tierFeatureObj);
 	}
 
-	delete(tierId: number) {
-		return this.tierTable.delete(tierId);
+	async delete(tierId: number) {
+		await this.tierTable.update(tierId, { isActive: 0 } as Partial<Model.Tier>);
+		return tierId;
 	}
 
 	deleteFeature(tierFeatureId: number) {

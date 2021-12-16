@@ -35,10 +35,6 @@ export default class BrandService extends Service {
 
 	start(services: Partial<Record<ServiceName, Service>>) {}
 
-	async getLocationsForCompany(companyId: number): Promise<Model.BrandLocation[]> {
-		return [];
-	}
-
 	async getOffsiteBrandList(companyId: number): Promise<OffsiteBrand[]> {
 		const {
 			services,
@@ -107,35 +103,35 @@ export default class BrandService extends Service {
 		return this.brandTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter, companyId);
 	}
 
-	getLocationDetails(brandLocationId: number, companyId?: number): Promise<Api.Brand.Res.Location.Details> {
-		return this.brandLocationTable.getDetails(brandLocationId, companyId);
+	getLocationDetails(brandLocationId: number): Promise<Api.Brand.Res.Location.Details> {
+		return this.brandLocationTable.getDetails(brandLocationId);
 	}
 
 	getLocationsByPage(
 		pageQuery: RedSky.PageQuery,
 		companyId?: number
 	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Location.Details[]>> {
-		return this.brandLocationTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter, companyId);
+		return this.brandLocationTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter);
 	}
 
 	create(brand: BrandToCreate): Promise<Model.Brand> {
 		return this.brandTable.create(brand);
 	}
 
-	update(updateDetails: BrandUpdate, companyId: number): Promise<Model.Brand> {
+	update(updateDetails: BrandUpdate, companyId: number): Promise<Api.Brand.Res.Details> {
 		return this.brandTable.update(updateDetails.id, updateDetails, companyId);
 	}
 
-	getLocationsForBrand(brandId: number, companyId: number): Promise<Model.BrandLocation[]> {
+	getLocationsForBrand(brandId: number): Promise<Api.Brand.Res.Location.Details[]> {
 		try {
-			return this.brandLocationTable.getForBrand(brandId, companyId);
+			return this.brandLocationTable.getLocationsForBrand(brandId);
 		} catch (e) {
 			if (e.err !== 'NOT_FOUND') logger.error(JSON.stringify(e));
 			return Promise.resolve([]);
 		}
 	}
 
-	updateLocation(id: number, locationDetails: Partial<Model.BrandLocation>): Promise<Model.BrandLocation> {
+	updateLocation(id: number, locationDetails: Partial<Model.BrandLocation>): Promise<Api.Brand.Res.Location.Details> {
 		return this.brandLocationTable.update(id, locationDetails);
 	}
 

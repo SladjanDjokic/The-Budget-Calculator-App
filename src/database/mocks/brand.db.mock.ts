@@ -2,7 +2,6 @@ import { RsError } from '../../utils/errors';
 import { ObjectUtils } from '../../utils/utils';
 import IBrandTable from '../interfaces/IBrandTable';
 import TableMock from './table.db.mock';
-import Table from '../Table';
 
 export default class BrandTableMock extends TableMock implements IBrandTable {
 	getForCompanyCalls: number = 0;

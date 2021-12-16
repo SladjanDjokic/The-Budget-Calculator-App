@@ -28,10 +28,7 @@ export default class TierApi extends GeneralApi {
 	@boundMethod
 	@accessScopes('ADMINISTRATION')
 	async create(req: RsRequest<Api.Tier.Req.Create>, res: RsResponse<Api.Tier.Res.Get>) {
-		let obj = this.getCreateObjectFromRequest(req, this.tierService.getTierFields());
-		obj.featureIds = req.data.featureIds;
-		obj.mediaDetails = req.data.mediaDetails;
-		let createdObj = await this.tierService.create(obj);
+		const createdObj = await this.tierService.create(req.data, req.user.id);
 		res.sendData(createdObj);
 	}
 
@@ -78,7 +75,7 @@ export default class TierApi extends GeneralApi {
 	@boundMethod
 	@accessScopes('ADMINISTRATION')
 	async update(req: RsRequest<Api.Tier.Req.Update>, res: RsResponse<Api.Tier.Res.Get>) {
-		let updatedObjIdResponse = await this.tierService.update(req.data.id, req.data);
+		let updatedObjIdResponse = await this.tierService.update(req.data.id, req.data, req.user.id);
 		res.sendData(updatedObjIdResponse);
 	}
 

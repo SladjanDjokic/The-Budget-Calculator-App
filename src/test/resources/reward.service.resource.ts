@@ -25,6 +25,7 @@ import TierFeatureTableMock from '../../database/mocks/tierFeature.db.mock';
 import { ServiceName } from '../../services/serviceFactory';
 import { Service } from '../../services/Service';
 import RewardService from '../../services/reward/reward.service';
+import TierMultiplierTableMock from '../../database/mocks/tierMultiplier.db.mock';
 
 export default class RewardServiceResource {
 	readonly companyId: number;
@@ -210,7 +211,6 @@ export default class RewardServiceResource {
 				createdOn: now,
 				modifiedOn: now,
 				isActive: 1,
-				accrualRate: 1,
 				threshold: 0,
 				isAnnualRate: 0
 			}
@@ -275,8 +275,12 @@ export default class RewardServiceResource {
 			code: 'existingVoucher',
 			user: this.userResource.existingUser
 		};
-
-		this.services['TierService'] = new TierService(new TierTableMock(tiers, []), new TierFeatureTableMock({}));
+		const tierMultiplierTable = new TierMultiplierTableMock();
+		this.services['TierService'] = new TierService(
+			new TierTableMock(tiers, [], tierMultiplierTable),
+			new TierFeatureTableMock({}),
+			tierMultiplierTable
+		);
 		this.services['CompanyService'] = new CompanyServiceMock({
 			companyId: this.companyId,
 			ap2FactorLoginTimeoutDays: 2,

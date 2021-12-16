@@ -96,7 +96,7 @@ export default class CompanyService extends Service implements ICompanyService {
 		return company;
 	}
 
-	async update(id: number, obj) {
+	async update(id: number, obj): Promise<Api.Company.Res.Details> {
 		if (obj.hasOwnProperty('isBuyer')) throw new RsError('BAD_REQUEST', 'Invalid field isBuyer');
 		if (obj.domainName) throw new RsError('FORBIDDEN', 'Action is not allowed');
 		return await this.companyTable.update(id, obj, obj.companyId);
@@ -194,7 +194,8 @@ export default class CompanyService extends Service implements ICompanyService {
 			{ accessScope: 'ANALYTICS', read: 1, write: 1 },
 			{ accessScope: 'ORDERS', read: 1, write: 1 },
 			{ accessScope: 'REAL_ESTATE', read: 1, write: 1 },
-			{ accessScope: 'MEDIA_ACCESS', read: 1, write: 1 }
+			{ accessScope: 'MEDIA_ACCESS', read: 1, write: 1 },
+			{ accessScope: 'REPORTING', read: 1, write: 0 }
 		];
 		let createUserRole: CreateCompanyUserRole = {
 			accessScope: adminRoles,

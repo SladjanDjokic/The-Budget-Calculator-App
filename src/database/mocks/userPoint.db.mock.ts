@@ -23,6 +23,7 @@ export default class UserPointTableMock extends TableMock implements IUserPointT
 			pointAmount: pointObj.pointAmount,
 			pointType: pointObj.pointType,
 			reason: pointObj.reason,
+			pointRatesId: 0,
 			reservationId: pointObj.reservationId || null,
 			rewardVoucherId: pointObj.rewardVoucherId || null,
 			status: pointObj.status,

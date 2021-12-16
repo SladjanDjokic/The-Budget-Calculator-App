@@ -65,5 +65,6 @@ export default interface IUserTable extends ITable {
 	create: (userToCreate: UserCreate) => Promise<Api.User.Filtered>;
 	getIdsWithAwardableActions: () => Promise<number[]>;
 	getTierForUser: (userId: number) => Promise<Model.Tier>;
+	getMultiplierForUser: (userId: number) => Promise<{ multiplier: number }>;
 	getUsersByAccessScope: (accessScope: Model.UserAccessScopeTypes) => Promise<Model.User[]>;
 }

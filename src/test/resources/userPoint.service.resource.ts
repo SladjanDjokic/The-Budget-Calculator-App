@@ -23,6 +23,7 @@ const userPoint: Model.UserPoint = {
 	pointAmount: 5000,
 	pointType: 'BOOKING',
 	reason: 'HOTEL_STAY',
+	pointRatesId: 0,
 	reservationId: 0,
 	rewardVoucherId: 0,
 	status: 'PENDING',

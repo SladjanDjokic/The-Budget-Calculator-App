@@ -71,6 +71,16 @@ export default class DestinationValidation extends Validation {
 			),
 			isActive: JsonDecoder.optional(
 				JsonDecoder.oneOf([JsonDecoder.isExactly(0), JsonDecoder.isExactly(1)], 'isActive')
+			),
+			loyaltyStatus: JsonDecoder.optional(
+				JsonDecoder.oneOf(
+					[
+						JsonDecoder.isExactly('PENDING'),
+						JsonDecoder.isExactly('ACTIVE'),
+						JsonDecoder.isExactly('FROZEN')
+					],
+					''
+				)
 			)
 		},
 		'destination/'

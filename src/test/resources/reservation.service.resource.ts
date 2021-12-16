@@ -31,6 +31,7 @@ import TierFeatureTableMock from '../../database/mocks/tierFeature.db.mock';
 import TierService from '../../services/tier/tier.service';
 import PaymentServiceMock from '../../services/payment/payment.service.mock';
 import RateTableMock from '../../database/mocks/rate.db.mock';
+import TierMultiplierTableMock from '../../database/mocks/tierMultiplier.db.mock';
 
 const now = new Date();
 const companyId = 1;
@@ -292,6 +293,7 @@ const userPoints: Model.UserPoint[] = [
 		pointType: 'BOOKING',
 		pointAmount: 10000,
 		reason: 'HOTEL_STAY',
+		pointRatesId: 0,
 		notes: '',
 		createdOn: '',
 		modifiedOn: '',
@@ -314,6 +316,19 @@ const rates: IReservationSystem.Rate[] = [
 		destinationId: destination.id
 	}
 ];
+
+const tiers: { [key: number]: Model.Tier } = {
+	1: {
+		id: 525,
+		name: 'Bronze',
+		description: '',
+		createdOn: now,
+		modifiedOn: now,
+		isActive: 1,
+		threshold: 0,
+		isAnnualRate: 0
+	}
+};
 
 const userAddressTable = new UserAddressTableMock([userAddress]);
 const userPaymentMethodTable = new UserPaymentMethodTableMock({ 1: paymentMethod });
@@ -355,6 +370,9 @@ const userTable = new UserTableMock(
 	new UserPermissionTableMock([]),
 	userAddressTable
 );
+const tierMultiplierTable = new TierMultiplierTableMock([]);
+const tierTable = new TierTableMock(tiers, [], tierMultiplierTable);
+const tierFeatureTable = new TierFeatureTableMock({});
 
 const today = new Date();
 const indexDate = RedisUtils.getIndexDate(today.getUTCFullYear(), today.getUTCMonth() + 1, today.getUTCDate());
@@ -363,23 +381,9 @@ const upsellPackageKey = RedisUtils.generateUpsellPackageIndexKey(destination.id
 
 const redisClient = new RedisClientMock();
 
-const tiers: { [key: number]: Model.Tier } = {
-	1: {
-		id: 525,
-		name: 'Bronze',
-		description: '',
-		createdOn: now,
-		modifiedOn: now,
-		isActive: 1,
-		accrualRate: 1,
-		threshold: 0,
-		isAnnualRate: 0
-	}
-};
-
 let services: Partial<Record<ServiceName, Service>> = {};
 services['UserPointService'] = new UserPointServiceMock(new UserPointTableMock(userPoints));
-services['TierService'] = new TierService(new TierTableMock(tiers, []), new TierFeatureTableMock({}));
+services['TierService'] = new TierService(tierTable, tierFeatureTable, tierMultiplierTable);
 services['EmailService'] = new EmailServiceMock();
 services['UserService'] = new UserService(
 	userTable,

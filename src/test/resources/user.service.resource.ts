@@ -8,6 +8,7 @@ import TierFeatureTableMock from '../../database/mocks/tierFeature.db.mock';
 import MediaServiceMock from '../../services/media/media.service.mock';
 import UserCompletedCampaignTableMock from '../../database/mocks/userCompletedCampaign.db.mock';
 import CampaignTableMock from '../../database/mocks/campaign.db.mock';
+import TierMultiplierTableMock from '../../database/mocks/tierMultiplier.db.mock';
 
 export default class UserResource {
 	userRole: Model.UserRole;
@@ -45,7 +46,6 @@ export default class UserResource {
 				createdOn: now,
 				modifiedOn: now,
 				isActive: 1,
-				accrualRate: 1,
 				threshold: 0,
 				isAnnualRate: 0
 			}
@@ -198,7 +198,12 @@ export default class UserResource {
 			this.userAddressTable
 		);
 
-		this.tierService = new TierService(new TierTableMock(tiers, []), new TierFeatureTableMock({}));
+		const tierMultiplierTable = new TierMultiplierTableMock();
+		this.tierService = new TierService(
+			new TierTableMock([], [], tierMultiplierTable),
+			new TierFeatureTableMock({}),
+			tierMultiplierTable
+		);
 
 		this.tierService.start({ MediaService: new MediaServiceMock() });
 

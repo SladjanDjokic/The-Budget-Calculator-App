@@ -20,6 +20,8 @@ export default class Brand extends GeneralApi {
 		this.app.get(`${pre}/paged`, this.getByPage);
 		this.app.get(`${pre}/location/details`, this.getLocationDetails);
 		this.app.get(`${pre}/location/paged`, this.getLocationsByPage);
+		this.app.patch(`${pre}`, this.updateBrand);
+		this.app.patch(`${pre}/location`, this.updateBrandLocation);
 
 		this.brandService = serviceFactory.get<BrandService>('BrandService');
 	}
@@ -38,7 +40,7 @@ export default class Brand extends GeneralApi {
 	async getLocations(req: RsRequest<Api.Brand.Req.Location>, res: RsResponse<Api.Brand.Res.Location[]>) {
 		const companyId = WebUtils.getCompanyId(req);
 		if (!companyId) throw new RsError('FORBIDDEN');
-		const result = await this.brandService.getLocationsForBrand(req.data.id, companyId!);
+		const result = await this.brandService.getLocationsForBrand(req.data.id);
 		res.sendData(result);
 	}
 
@@ -58,11 +60,18 @@ export default class Brand extends GeneralApi {
 
 	@boundMethod
 	@accessScopes('ADMINISTRATION')
+	async updateBrand(req: RsRequest<Api.Brand.Req.Update>, res: RsResponse<Api.Brand.Res.Details>) {
+		const result = await this.brandService.update(req.data, WebUtils.getCompanyId(req));
+		res.sendData(result);
+	}
+
+	@boundMethod
+	@accessScopes('ADMINISTRATION')
 	async getLocationDetails(
 		req: RsRequest<Api.Brand.Req.Location.Get>,
 		res: RsResponse<Api.Brand.Res.Location.Details>
 	) {
-		const result = await this.brandService.getLocationDetails(req.data.id, WebUtils.getCompanyId(req));
+		const result = await this.brandService.getLocationDetails(req.data.id);
 		res.sendData(result);
 	}
 
@@ -71,5 +80,15 @@ export default class Brand extends GeneralApi {
 	async getLocationsByPage(req: RsRequest<RedSky.PageQuery>, res: RsResponse<Api.Brand.Res.Location.Details[]>) {
 		const result = await this.brandService.getLocationsByPage(req.data, WebUtils.getCompanyId(req));
 		res.sendPaginated(result.data, result.total);
+	}
+
+	@boundMethod
+	@accessScopes('ADMINISTRATION')
+	async updateBrandLocation(
+		req: RsRequest<Api.Brand.Req.Location.Update>,
+		res: RsResponse<Api.Brand.Res.Location.Details>
+	) {
+		const result = await this.brandService.updateLocation(req.data.id, req.data);
+		res.sendData(result);
 	}
 }

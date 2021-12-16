@@ -1,5 +1,4 @@
-import chai from 'chai';
-import TierFeatureTableMock from '../../database/mocks/tierFeature.db.mock';
+import chai, { expect } from 'chai';
 import TierService from '../../services/tier/tier.service';
 import TierResource from '../resources/tier.service.resource';
 
@@ -8,7 +7,11 @@ describe('Tier Service', function () {
 	let tierService: TierService;
 	function initialize() {
 		tierResource = new TierResource();
-		tierService = new TierService(tierResource.tierTable, tierResource.tierFeatureTable);
+		tierService = new TierService(
+			tierResource.tierTable,
+			tierResource.tierFeatureTable,
+			tierResource.tierMultiplierTable
+		);
 		tierService.start({ MediaService: tierResource.mediaService });
 	}
 
@@ -29,28 +32,31 @@ describe('Tier Service', function () {
 				...tierResource.tierCreate,
 				featureIds: [tierResource.existingFeature.id]
 			};
-			let tier: Api.Tier.Res.Get = await tierService.create(createObj);
+			let tier: Api.Tier.Res.Get = await tierService.create(createObj, tierResource.adminUserId);
 			chai.expect(tier.id).to.exist;
 			chai.expect(tier).to.haveOwnProperty('name').that.equals(tierResource.tierCreate.name);
 		});
 		it('should add media map for the new tier', async () => {
 			tierResource.tierCreate.mediaDetails = tierResource.mediaDetails;
 			const submittedMediaIds: number[] = tierResource.mediaDetails.map((m) => m.id);
-			const tier = await tierService.create(tierResource.tierCreate);
+			const tier = await tierService.create(tierResource.tierCreate, tierResource.adminUserId);
 			chai.expect(tierResource.mediaService.createMediaMapAndSetMediaPropertyCalls).to.be.greaterThan(0);
 			chai.expect(tierResource.mediaService.mediaIds).to.include.members(submittedMediaIds);
 		});
-		it('should create a feature map for the new tier');
 	});
 
 	describe('Update Tier', function () {
 		beforeEach(initialize);
 		it("should update a tier's feature", async function () {
-			const result: Api.Tier.Res.Get = await tierService.update(tierResource.existingTier.id, {
-				id: tierResource.existingTier.id,
-				featureIds: [tierResource.existingFeature.id],
-				name: tierResource.tierUpdate.name
-			});
+			const result: Api.Tier.Res.Get = await tierService.update(
+				tierResource.existingTier.id,
+				{
+					id: tierResource.existingTier.id,
+					featureIds: [tierResource.existingFeature.id],
+					name: tierResource.tierUpdate.name
+				},
+				tierResource.adminUserId
+			);
 			chai.expect(result).to.exist;
 			chai.expect(result.modifiedOn).to.not.equal(result.createdOn);
 			chai.expect(result.features).to.be.an('array');
@@ -65,6 +71,17 @@ describe('Tier Service', function () {
 			chai.expect(result.modifiedOn).to.not.equal(tierResource.existingFeature.createdOn);
 			chai.expect(tierResource.tierFeatureTable.features[tierResource.existingFeature.id]).to.eql(result);
 		});
+		it('should update the accrual rate/multiplier', async function () {
+			const newMultiplier: number = Date.now();
+			const originalMultiplierCount = tierResource.tierMultiplierTable.Multipliers.length;
+			const result = await tierService.update(
+				tierResource.existingTier.id,
+				{ id: tierResource.existingTier.id, accrualRate: newMultiplier },
+				tierResource.adminUserId
+			);
+			expect(result.accrualRate).to.equal(newMultiplier);
+			expect(tierResource.tierMultiplierTable.Multipliers.length).to.be.greaterThan(originalMultiplierCount);
+		});
 	});
 
 	describe('Get tier', function () {
@@ -75,6 +92,7 @@ describe('Tier Service', function () {
 			chai.expect(tier.id).to.equal(tierResource.existingTier.id);
 			chai.expect(tier.mediaDetails).to.exist;
 			chai.expect(tier.mediaDetails).to.be.an('array');
+			expect(tier.accrualRate).to.equal(tierResource.existingMultiplier.multiplier);
 		});
 		it('should get tiers by page', async function () {
 			let filterObj = {

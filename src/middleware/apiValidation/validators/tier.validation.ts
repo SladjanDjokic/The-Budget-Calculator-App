@@ -6,7 +6,7 @@ export default class TierValidation extends Validation {
 		super('TierValidation');
 	}
 
-	'POST:' = JsonDecoder.object<Api.Tier.Req.Create>(
+	'POST:' = JsonDecoder.objectStrict<Api.Tier.Req.Create>(
 		{
 			name: JsonDecoder.string,
 			description: JsonDecoder.optional(JsonDecoder.string),

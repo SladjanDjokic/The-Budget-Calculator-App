@@ -72,8 +72,7 @@ export default class UserPointService extends Service implements IUserPointServi
 		let tierAccrualRate = 1;
 		if (!!pointObj.userId) {
 			try {
-				const userTier: Model.Tier = await this.userService.getTierForUser(pointObj.userId);
-				tierAccrualRate = userTier.accrualRate;
+				tierAccrualRate = await this.userService.getTierMultiplierForUser(pointObj.userId);
 			} catch (e) {
 				logger.warn(`Failed to get tier accrual rate, using default of 1`, pointObj);
 			}

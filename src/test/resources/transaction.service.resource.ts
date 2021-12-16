@@ -20,6 +20,7 @@ import CampaignServiceMock from '../../services/campaign/campaign.service.mock';
 import CampaignTableMock from '../../database/mocks/campaign.db.mock';
 import CampaignActionTableMock from '../../database/mocks/campaignAction.db.mock';
 import UserPointTableMock from '../../database/mocks/userPoint.db.mock';
+import TierMultiplierTableMock from '../../database/mocks/tierMultiplier.db.mock';
 
 const authDetails: IFidel.Transaction.Req.Auth = {
 	auth: true,
@@ -318,7 +319,6 @@ const tiers: { [key: number]: Model.Tier } = {
 		createdOn: now,
 		modifiedOn: now,
 		isActive: 1,
-		accrualRate: 1,
 		threshold: 0,
 		isAnnualRate: 0
 	}
@@ -352,7 +352,12 @@ const userService = new UserService(
 	new RedisClientMock(),
 	new UserActionTableMock(userActions)
 );
-const tierService = new TierService(new TierTableMock([], []), new TierFeatureTableMock({}));
+const tierMultiplierTable = new TierMultiplierTableMock();
+const tierService = new TierService(
+	new TierTableMock([], [], tierMultiplierTable),
+	new TierFeatureTableMock({}),
+	tierMultiplierTable
+);
 tierService.start({
 	MediaService: new MediaServiceMock()
 });

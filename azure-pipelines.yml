@@ -53,11 +53,10 @@ stages:
                       key: 'node_modules | "$(Agent.OS)" | package.json'
                       path: node_modules
                   displayName: Retrieve Node modules cache
-                - script: |
-                      gulp clean
-                      tsc
-                      gulp copy
+                - script: gulp clean
+                - script: tsc
                   displayName: Build application
+                - script: gulp copy
                 - task: PublishPipelineArtifact@1
                   inputs:
                       targetPath: '$(System.DefaultWorkingDirectory)/$(OUTPUT_NAME)'
@@ -86,9 +85,8 @@ stages:
             displayName: Checking for only() calls
             dependsOn: []
             steps:
-                - script: |
-                      (! grep -r --include="*.spec.ts" "describe.only" src/test)
-                      (! grep -r --include="*.spec.ts" "it.only" src/test)
+                - script: (! grep -r --include="*.spec.ts" "describe.only" src/test)
+                - script: (! grep -r --include="*.spec.ts" "it.only" src/test)
           - job: database
             dependsOn: only
             displayName: Testing database

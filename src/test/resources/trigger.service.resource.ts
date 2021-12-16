@@ -28,6 +28,7 @@ import IUserCompletedCampaignTable from '../../database/interfaces/IUserComplete
 import CampaignActionTableMock from '../../database/mocks/campaignAction.db.mock';
 import CampaignService from '../../services/campaign/campaign.service';
 import UserPointTableMock from '../../database/mocks/userPoint.db.mock';
+import TierMultiplierTableMock from '../../database/mocks/tierMultiplier.db.mock';
 
 const companyId = 1;
 const now = new Date();
@@ -232,7 +233,6 @@ const tiers: { [key: number]: Model.Tier } = {
 		createdOn: now,
 		modifiedOn: now,
 		isActive: 1,
-		accrualRate: 1,
 		threshold: 0,
 		isAnnualRate: 0
 	}
@@ -260,7 +260,12 @@ const userService = new UserService(
 	new RedisClientMock(),
 	userActionTable
 );
-const tierService = new TierService(new TierTableMock(tiers, []), new TierFeatureTableMock({}));
+const tierMultiplierTable = new TierMultiplierTableMock();
+const tierService = new TierService(
+	new TierTableMock(tiers, [], tierMultiplierTable),
+	new TierFeatureTableMock({}),
+	tierMultiplierTable
+);
 tierService.start({
 	MediaService: new MediaServiceMock()
 });

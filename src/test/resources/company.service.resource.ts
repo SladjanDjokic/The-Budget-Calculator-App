@@ -3,6 +3,8 @@ import CompanyVariablesTableMock from '../../database/mocks/companyVariables.db.
 
 const company: Model.Company = {
 	id: 2,
+	isActive: 1,
+	loyaltyStatus: 'PENDING',
 	name: 'Rentyl',
 	squareLogoUrl: '',
 	wideLogoUrl: '',
@@ -22,6 +24,8 @@ const company: Model.Company = {
 
 const company2: Model.Company = {
 	id: 3,
+	isActive: 1,
+	loyaltyStatus: 'PENDING',
 	name: 'Acme Company',
 	squareLogoUrl: '',
 	wideLogoUrl: '',

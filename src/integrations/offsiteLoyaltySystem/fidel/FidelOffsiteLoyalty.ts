@@ -137,6 +137,7 @@ export default class FidelOffsiteLoyalty extends OffsiteLoyalty {
 				zip: location.postcode,
 				country: this.getCountry(location.stateCode),
 				isActive: location.active ? 1 : 0,
+				loyaltyStatus: 'PENDING',
 				externalId: location.id,
 				metaData: JSON.stringify(location)
 			});

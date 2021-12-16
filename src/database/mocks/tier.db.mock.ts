@@ -1,6 +1,7 @@
 import { DateUtils, ObjectUtils } from '../../utils/utils';
 import ITierTable from '../interfaces/ITierTable';
 import TableMock from './table.db.mock';
+import TierMultiplierTableMock from './tierMultiplier.db.mock';
 
 export default class TierTableMock extends TableMock implements ITierTable {
 	columns: string[] = [
@@ -11,7 +12,6 @@ export default class TierTableMock extends TableMock implements ITierTable {
 		'createdOn',
 		'modifiedOn',
 		'isActive',
-		'accrualRate',
 		'threshold',
 		'isAnnualRate'
 	];
@@ -19,7 +19,8 @@ export default class TierTableMock extends TableMock implements ITierTable {
 
 	constructor(
 		public readonly tiers: { [key: number]: Model.Tier },
-		public readonly featureMaps: Model.TierFeatureMap[]
+		public readonly featureMaps: Model.TierFeatureMap[],
+		public readonly multipierTable: TierMultiplierTableMock
 	) {
 		super();
 		this.lastId = Math.max(...Object.keys(tiers).map((k) => parseInt(k)));
@@ -40,8 +41,13 @@ export default class TierTableMock extends TableMock implements ITierTable {
 	}
 	async getById(tierId: number): Promise<Api.Tier.Res.Get> {
 		const baseTier = this.tiers[tierId];
+		const multiplierId = Math.max(
+			...this.multipierTable.Multipliers.filter((m) => m.tierId === tierId).map((m) => m.id)
+		);
+		const multiplier = this.multipierTable.Multipliers.find((m) => m.id === multiplierId);
 		return {
 			...baseTier,
+			accrualRate: multiplier.multiplier,
 			features: [],
 			mediaDetails: []
 		};
@@ -77,12 +83,9 @@ export default class TierTableMock extends TableMock implements ITierTable {
 		// @ts-ignore
 		return { total: Object.keys(this.tiers).length, data: this.tiers };
 	}
-	async delete(id: number, companyId: number): Promise<number> {
-		delete this.tiers[id];
-		return id;
-	}
 
 	getManyByIds: (objIds: readonly number[], companyId?: number) => Promise<any>;
 	updateMany: (ids: number[], tableObj: any) => Promise<any>;
-	deleteMany: (ids: number[], companyId?: number) => Promise<any>;
+	deleteMany: null;
+	delete: null;
 }

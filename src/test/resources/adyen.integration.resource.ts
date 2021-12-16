@@ -13,6 +13,8 @@ const paymentMethodDetailTypes = ['cardToken', 'text', 'tel', 'select', 'radio',
 
 const companyDetails: IntegrationCompanyDetails = {
 	id: 1,
+	isActive: 1,
+	loyaltyStatus: 'PENDING',
 	name: 'Red Sky',
 	squareLogoUrl: null,
 	wideLogoUrl: null,

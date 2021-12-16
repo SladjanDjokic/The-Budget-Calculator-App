@@ -7,4 +7,6 @@ export default interface ITierTable extends ITable {
 	addFeature: (tierId: number, featureIdList: number[]) => Promise<any>;
 	deleteFeaturesForTier: (tierId: number) => Promise<boolean>;
 	getAll: () => Promise<Model.Tier[]>;
+	delete: null;
+	deleteMany: null;
 }

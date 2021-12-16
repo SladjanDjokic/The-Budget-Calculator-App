@@ -36,15 +36,14 @@ export default class OffsiteBrandLocationSync extends CronTask {
 				const localBrands: Model.Brand[] = await this.brandService.getAllForCompany(company.id);
 				for (let brand of localBrands) {
 					const localBrandLocations: Model.BrandLocation[] = await this.brandService.getLocationsForBrand(
-						brand.id,
-						company.id
+						brand.id
 					);
-					const offsiteBrands: OffsiteBrandLocation[] = await this.brandService.getOffsiteBrandLocations(
+					const offsiteBrandLocations: OffsiteBrandLocation[] = await this.brandService.getOffsiteBrandLocations(
 						company.id,
-						brand.externalId
+						brand.externalId.toString()
 					);
-					await this.updateBrandLocations(localBrandLocations, offsiteBrands);
-					await this.createBrandLocations(brand.id, localBrandLocations, offsiteBrands);
+					await this.updateBrandLocations(localBrandLocations, offsiteBrandLocations);
+					await this.createBrandLocations(brand.id, localBrandLocations, offsiteBrandLocations);
 				}
 			} catch (e) {
 				logger.error(JSON.stringify(e));
@@ -59,17 +58,18 @@ export default class OffsiteBrandLocationSync extends CronTask {
 
 	private async updateBrandLocations(
 		localBrandLocations: Model.BrandLocation[],
-		offsiteBrands: OffsiteBrandLocation[]
+		offsiteBrandLocations: OffsiteBrandLocation[]
 	) {
 		for (let localLocation of localBrandLocations) {
-			const offsiteLocation: OffsiteBrandLocation = offsiteBrands.find((location) => {
+			const offsiteLocation: OffsiteBrandLocation = offsiteBrandLocations.find((location) => {
 				return location.externalId === localLocation.externalId;
 			});
 			if (!offsiteLocation) continue;
 			const locationDetails: Partial<Model.BrandLocation> = {
+				...offsiteLocation,
 				id: localLocation.id,
 				name: localLocation.name,
-				...offsiteLocation
+				loyaltyStatus: localLocation.loyaltyStatus
 			};
 			await this.brandService.updateLocation(locationDetails.id, locationDetails);
 		}

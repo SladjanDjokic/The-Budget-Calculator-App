@@ -470,6 +470,11 @@ export default class UserService extends Service {
 		return this.userTable.getTierForUser(userId);
 	}
 
+	async getTierMultiplierForUser(userId: number) {
+		const result = await this.userTable.getMultiplierForUser(userId);
+		return result.multiplier;
+	}
+
 	private async isValidToCreate(user: UserToCreate | Api.Customer.Req.Create | Api.User.Req.Create): Promise<void> {
 		if (!this.isValidEmailAddress(user.primaryEmail)) throw new RsError('BAD_REQUEST', 'Invalid email format');
 		let isUniqueEmail: boolean = await this.isEmailUnique(user.primaryEmail);

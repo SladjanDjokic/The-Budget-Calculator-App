@@ -6,6 +6,8 @@ export default class ServiceKeyTableMock extends TableMock implements IServiceKe
 	async getServiceKeyAndCompanyDetails(serviceType: Model.ServiceKeyType): Promise<ServiceKeyAndDetails> {
 		return {
 			id: 1,
+			isActive: 1,
+			loyaltyStatus: 'PENDING',
 			address: '',
 			city: '',
 			state: '',
@@ -29,6 +31,8 @@ export default class ServiceKeyTableMock extends TableMock implements IServiceKe
 	async getServiceKeysAndCompanyDetails(serviceType: Model.ServiceKeyType): Promise<ServiceKeysAndDetails> {
 		return {
 			id: 1,
+			isActive: 1,
+			loyaltyStatus: 'PENDING',
 			address: '',
 			city: '',
 			state: '',

@@ -9,6 +9,7 @@ import Tier from './tier/tier.service';
 import UserAddress from './userAddress/userAddress.service';
 import UserPoint from './userPoint/userPoint.service';
 import User from './user/user.service';
+import UserBusiness from './userBusiness/userBusiness.service';
 import Media from './media/media.service';
 import Email from './email/email.service';
 import Company from './company/company.service';
@@ -65,6 +66,7 @@ export type ServiceName =
 	| 'TriggerService'
 	| 'TransactionService'
 	| 'UserAddressService'
+	| 'UserBusinessService'
 	| 'UserCompletedCampaignService'
 	| 'UserPointService'
 	| 'ReviewService'
@@ -101,7 +103,11 @@ class ServiceFactory {
 			dbSingleton.get().emailTemplate,
 			emailSystemProvider
 		);
-		this.services['TierService'] = new Tier(dbSingleton.get().tier, dbSingleton.get().tierFeature);
+		this.services['TierService'] = new Tier(
+			dbSingleton.get().tier,
+			dbSingleton.get().tierFeature,
+			dbSingleton.get().tierMultiplier
+		);
 		this.services['UserService'] = new User(
 			dbSingleton.get().user,
 			dbSingleton.get().userAddress,
@@ -110,6 +116,7 @@ class ServiceFactory {
 			redisClient,
 			dbSingleton.get().userAction
 		);
+		this.services['UserBusinessService'] = new UserBusiness(dbSingleton.get().userBusiness);
 		this.services['UserPointService'] = new UserPoint(
 			dbSingleton.get().userPoint,
 			dbSingleton.get().user,
