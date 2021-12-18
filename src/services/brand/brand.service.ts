@@ -108,8 +108,7 @@ export default class BrandService extends Service {
 	}
 
 	getLocationsByPage(
-		pageQuery: RedSky.PageQuery,
-		companyId?: number
+		pageQuery: RedSky.PageQuery
 	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Location.Details[]>> {
 		return this.brandLocationTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter);
 	}
@@ -131,12 +130,62 @@ export default class BrandService extends Service {
 		}
 	}
 
+	getReportsByPage(
+		pageQuery: RedSky.PageQuery,
+		companyId?: number
+	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Report[]>> {
+		return this.brandTable.getReportsByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter, companyId);
+	}
+
+	getBrandLocationTransactionsByPage(
+		locationId: number,
+		pageQuery: RedSky.PageQuery,
+		companyId?: number
+	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Location.Transaction[]>> {
+		return this.brandLocationTable.getTransactionsByPage(
+			locationId,
+			pageQuery.pagination,
+			pageQuery.sort,
+			pageQuery.filter,
+			companyId
+		);
+	}
+
+	getLocationsOverviewByPage(
+		locationId: number,
+		pageQuery: RedSky.PageQuery,
+		companyId?: number
+	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Report[]>> {
+		return this.brandLocationTable.getLocationsOverviewByPage(
+			locationId,
+			pageQuery.pagination,
+			pageQuery.sort,
+			pageQuery.filter,
+			companyId
+		);
+	}
+
+	exportLocationsOverviewReport(brandId: number, companyId?: number): Promise<Api.Brand.Res.Report[]> {
+		return this.brandLocationTable.exportLocationsOverviewReport(brandId, companyId);
+	}
+
 	updateLocation(id: number, locationDetails: Partial<Model.BrandLocation>): Promise<Api.Brand.Res.Location.Details> {
 		return this.brandLocationTable.update(id, locationDetails);
 	}
 
 	createLocation(locationDetails: Partial<Model.BrandLocation>): Promise<Model.BrandLocation> {
 		return this.brandLocationTable.create(locationDetails);
+	}
+
+	exportBrandsReport(companyId: number): Promise<Api.Brand.Res.Report[]> {
+		return this.brandTable.exportReports(companyId);
+	}
+
+	exportBrandLocationReport(
+		brandLocationId: number,
+		companyId?: number
+	): Promise<Api.Brand.Res.Location.Transaction[]> {
+		return this.brandLocationTable.exportReports(brandLocationId, companyId);
 	}
 
 	private async getOffsiteCompanyKeysAndProviders(companyId?: number): Promise<OffsiteCompanyKeysAndProviders> {

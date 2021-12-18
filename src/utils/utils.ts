@@ -44,6 +44,34 @@ class WebUtils extends BaseWebUtils {
 	}
 
 	/**
+	 *
+	 * @param headers - array of strings for what the columns headers should be
+	 * @param rows - an array of objects for each row
+	 */
+	static convertToCSV<T>(rows: T[], headers?: string[]): string {
+		if (!headers) headers = Object.keys(rows[0]).map((key) => key);
+		let stringBuilder = headers.join(', ');
+		stringBuilder += '\r\n';
+		for (let row of rows) {
+			let stringArray = [];
+			for (let key of Object.keys(row)) {
+				if (row[key] === undefined || row[key] === null) {
+					stringArray.push(' ');
+					continue;
+				}
+				if (key.toLowerCase().includes('date')) {
+					stringArray.push(DateUtils.formatDateForUser(row[key]));
+				} else {
+					stringArray.push(row[key].toString().replace(/,/gi, ' '));
+				}
+			}
+			stringBuilder += stringArray.join(', ');
+			stringBuilder += '\r\n';
+		}
+		return stringBuilder;
+	}
+
+	/**
 	 * Async sleep method for waiting for a timeout period
 	 * @name sleep
 	 * @param {number} ms - sleep time in milliseconds

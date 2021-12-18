@@ -1,14 +1,33 @@
 import chai from 'chai';
 import dbSingleton from '../../database/dbSingleton';
-import brandLocationResource from '../resources/brandLocation.db.resource';
 import BrandLocation from '../../database/objects/brandLocation.db';
+import resource from '../resources/brandLocationTable.db.resource';
+
 const expect = chai.expect;
 
-describe('Brand Location view', function () {
+describe('Brand Location table', function () {
 	let table: BrandLocation;
-	const resource = brandLocationResource;
 	before(() => {
 		table = dbSingleton.get().brandLocation;
+	});
+
+	describe('transaction', function () {
+		it('should get transactions for location', async function () {
+			const results = await table.getTransactionsByPage(
+				resource.brandLocationId,
+				resource.pagination,
+				resource.sort
+			);
+			expect(results).to.exist;
+			expect(results).to.haveOwnProperty('total').that.is.greaterThan(0);
+			expect(results).to.haveOwnProperty('data').that.is.an('array');
+		});
+
+		it('should get no transactions for a nonexisting location', async function () {
+			const results = await table.getTransactionsByPage(100000, resource.pagination, resource.sort);
+			expect(results).to.exist;
+			expect(results.total).to.equal(0);
+		});
 	});
 	describe('Get details', function () {
 		let brandLocation: Api.Brand.Res.Location.Details;
@@ -26,7 +45,7 @@ describe('Brand Location view', function () {
 	});
 	describe('Get By Page', function () {
 		it('should get brand locations and paginate', async function () {
-			const result = await table.getByPage(resource.pagination, resource.sort, resource.filter);
+			const result = await table.getByPage(resource.pagination, resource.sort);
 			expect(result).to.exist;
 			expect(result).to.haveOwnProperty('data');
 			expect(result).to.haveOwnProperty('total');

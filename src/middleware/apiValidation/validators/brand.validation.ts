@@ -13,7 +13,7 @@ export default class BrandValidation extends Validation {
 		'brand/details'
 	);
 
-	'GET:location' = JsonDecoder.object<Api.Brand.Req.Location>(
+	'GET:location' = JsonDecoder.object<Api.Brand.Req.Location.Get>(
 		{
 			id: JsonDecoder.number
 		},
@@ -49,6 +49,16 @@ export default class BrandValidation extends Validation {
 		'brand'
 	);
 
+	'GET:reports' = JsonDecoder.object<RedSky.PageQuery>(this.pagedValidation, 'brand/reports');
+
+	'GET:location/transactions' = JsonDecoder.object<Api.Brand.Req.Location.Report>(
+		{
+			id: JsonDecoder.number,
+			pageQuery: JsonDecoder.object<RedSky.PageQuery>(this.pagedValidation, 'pageQuery')
+		},
+		'brand/location/transactions'
+	);
+
 	'GET:location/details' = JsonDecoder.object<Api.Brand.Req.Location.Get>(
 		{
 			id: JsonDecoder.number
@@ -57,6 +67,21 @@ export default class BrandValidation extends Validation {
 	);
 
 	'GET:location/paged' = JsonDecoder.object<RedSky.PageQuery>(this.pagedValidation, 'brand/location/paged');
+
+	'GET:location/reports' = JsonDecoder.object<Api.Brand.Req.Report>(
+		{
+			id: JsonDecoder.number,
+			pageQuery: JsonDecoder.object<RedSky.PageQuery>(this.pagedValidation, 'pageQuery')
+		},
+		'brand/location/reports'
+	);
+
+	'GET:location/reports/export' = JsonDecoder.object<Api.Brand.Req.Get>(
+		{
+			id: JsonDecoder.number
+		},
+		'brand/location/reports/export'
+	);
 
 	'PATCH:location' = JsonDecoder.object<Api.Brand.Req.Location.Update>(
 		{

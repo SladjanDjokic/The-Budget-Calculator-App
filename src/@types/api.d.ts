@@ -321,8 +321,9 @@ declare namespace Api {
 				id: number;
 			}
 
-			export interface Location {
-				id: number;
+			export interface Report {
+				id?: number;
+				pageQuery: RedSky.PageQuery;
 			}
 
 			export interface Update extends Partial<Omit<Model.Brand, 'createdOn' | 'externalId' | 'modifiedOn'>> {
@@ -336,6 +337,10 @@ declare namespace Api {
 				export interface Update extends Partial<Omit<Model.BrandLocation, 'brandId' | 'externalId'>> {
 					id: number;
 				}
+				export interface Report {
+					id: number;
+					pageQuery: RedSky.PageQuery;
+				}
 			}
 		}
 		export namespace Res {
@@ -348,12 +353,41 @@ declare namespace Api {
 				pointsPerDollar: number;
 				costPerPoint: number;
 			}
+
+			export interface Report {
+				brandName: string;
+				spireYTDRevenue: number;
+				pointsPerDollar: number;
+				costPerPoint: number;
+				costToMerchant: number;
+				spireRevenuePerDollar: number;
+				spireRevenuePerPoint: number;
+				loyaltyStatus: Model.LoyaltyStatus;
+			}
 			export interface Location extends Model.BrandLocation {}
 			export namespace Location {
 				export interface Get extends Model.BrandLocation {}
 				export interface Details extends Model.BrandLocation {
 					pointsPerDollar: number;
 					costPerPoint: number;
+					spireYTDRevenue: number;
+				}
+				export interface Transaction {
+					transactionDate: string | Date;
+					transactionId: string;
+					cardType: string;
+					last4: number;
+					pointsTransacted: number;
+					totalTransactionAmount: number;
+					deferredRevenue: number;
+					customerName: string;
+					primaryEmail: string;
+				}
+
+				export interface Overview {
+					id: number;
+					locationName: string;
+					spireRevenueYTD: number;
 				}
 			}
 		}

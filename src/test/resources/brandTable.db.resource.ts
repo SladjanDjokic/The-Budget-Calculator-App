@@ -1,27 +1,22 @@
 const brandId = 1;
+const companyId = 1;
 const pagination: RedSky.PagePagination = {
 	page: 1,
-	perPage: 2
+	perPage: 100
+};
+const sort: RedSky.SortQuery = {
+	order: 'ASC',
+	field: 'id'
 };
 const filter: RedSky.FilterQuery = {
 	matchType: 'like',
-	searchTerm: [
-		{
-			column: 'loyaltyStatus',
-			value: 'ACTIVE'
-		}
-	]
-};
-const sort: RedSky.SortQuery = {
-	field: 'name',
-	order: 'DESC'
+	searchTerm: [{ column: 'loyaltyStatus', value: 'ACTIVE' }]
 };
 const brandTableResource = {
-	companyId: 1,
 	brandId,
 	pagination,
+	sort,
 	filter,
-	sort
+	companyId
 };
-
 export default brandTableResource;

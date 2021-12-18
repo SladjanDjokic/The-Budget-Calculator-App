@@ -4,7 +4,6 @@ declare namespace Model {
 	export type AccommodationTypes = 'HOTEL' | 'RENTAL';
 	export type AccommodationStatusType = 'ACTIVE' | 'INACTIVE' | 'DELETED';
 	export type AccommodationRoomClassType = 'Deluxe';
-	export type LoyaltyStatus = 'PENDING' | 'ACTIVE' | 'FROZEN';
 	export type UserAddressType = 'SHIPPING' | 'BILLING' | 'BOTH';
 	export type UserAccessScopeTypes =
 		| 'USER'
@@ -56,6 +55,7 @@ declare namespace Model {
 	export type CurrencyCode = 'USD'; // Add more if/when we add multicurrency support
 	export type ReviewStatus = 'APPROVED' | 'REJECTED' | 'FLAGGED' | 'PENDING';
 	export type OrderRedemptionStatus = 'PENDING' | 'COMPLETED' | 'ERROR';
+	export type LoyaltyStatus = 'PENDING' | 'ACTIVE' | 'FROZEN';
 	export type PageGuard = {
 		page: string;
 		route: string;

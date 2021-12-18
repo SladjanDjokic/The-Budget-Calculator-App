@@ -200,7 +200,7 @@ export default class UserResource {
 
 		const tierMultiplierTable = new TierMultiplierTableMock();
 		this.tierService = new TierService(
-			new TierTableMock([], [], tierMultiplierTable),
+			new TierTableMock(tiers, [], tierMultiplierTable),
 			new TierFeatureTableMock({}),
 			tierMultiplierTable
 		);

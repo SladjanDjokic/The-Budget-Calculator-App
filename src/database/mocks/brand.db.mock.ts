@@ -5,22 +5,41 @@ import TableMock from './table.db.mock';
 
 export default class BrandTableMock extends TableMock implements IBrandTable {
 	getForCompanyCalls: number = 0;
+
 	constructor(public readonly Brands: Model.Brand[]) {
 		super();
 	}
+
 	columns: string[];
 
 	create: (tableObj: any) => Promise<any>;
+
 	async getAll() {
 		return ObjectUtils.deepClone(this.Brands);
 	}
+
 	async getById(brandId: number): Promise<Model.Brand> {
 		return this.Brands.find((a) => a.id === brandId);
 	}
+
 	async getAllForCompany(companyId: number): Promise<Model.Brand[]> {
 		throw new RsError('SERVICE_UNAVAILABLE', 'Unimplemented method');
 	}
+
 	async getDetails(brandId: number, companyId?: number): Promise<Api.Brand.Res.Details> {
+		throw new RsError('SERVICE_UNAVAILABLE', 'Unimplemented method');
+	}
+
+	exportReports(companyId: number): Promise<Api.Brand.Res.Report[]> {
+		throw new RsError('SERVICE_UNAVAILABLE', 'Unimplemented method');
+	}
+
+	getReportsByPage(
+		pagination: RedSky.PagePagination,
+		sort: RedSky.SortQuery,
+		filter?: RedSky.FilterQuery,
+		companyId?: number
+	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Report[]>> {
 		throw new RsError('SERVICE_UNAVAILABLE', 'Unimplemented method');
 	}
 
