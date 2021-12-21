@@ -5,6 +5,11 @@ pool:
 variables:
     OUTPUT_NAME: 'dist'
 
+trigger:
+    branches:
+        exclude:
+            - '*'
+
 stages:
     - stage: build
       displayName: Prepping application
@@ -64,126 +69,14 @@ stages:
                       artifactName: $(OUTPUT_NAME)
                   displayName: Publish artifacts for deployment
 
-    # - stage: test
-    #   dependsOn: build
-    #   jobs:
-    #       - job: prettier
-    #         displayName: Checking prettiness
-    #         dependsOn: []
-    #         steps:
-    #             - task: NodeTool@0
-    #               inputs:
-    #                   versionSpec: '14.x'
-    #               displayName: 'Installing Node.js'
-    #             - task: CacheBeta@1
-    #               inputs:
-    #                   key: 'node_modules | "$(Agent.OS)" | package.json'
-    #                   path: node_modules
-    #               displayName: Retrieve Node modules cache
-    #             - script: yarn run prettier:check
-    #               displayName: Checking for prettyness
-    #       - job: only
-    #         displayName: Checking for only() calls
-    #         dependsOn: []
-    #         steps:
-    #             - script: (! grep -r --include="*.spec.ts" "describe.only" src/test)
-    #             - script: (! grep -r --include="*.spec.ts" "it.only" src/test)
-    #       - job: database
-    #         dependsOn: only
-    #         displayName: Testing database
-    #         steps:
-    #             - task: NodeTool@0
-    #               inputs:
-    #                   versionSpec: '14.x'
-    #               displayName: 'Installing Node.js'
-    #             - task: DownloadPipelineArtifact@2
-    #               inputs:
-    #                   source: current
-    #                   artifact: $(OUTPUT_NAME)
-    #                   path: ./$(OUTPUT_NAME)
-    #             - task: CacheBeta@1
-    #               inputs:
-    #                   key: 'node_modules | "$(Agent.OS)" | package.json'
-    #                   path: node_modules
-    #               displayName: Retrieve Node modules cache
-    #             - script: printenv CONFIG_FILE >"./config.json"
-    #               env:
-    #                   CONFIG_FILE: $(DEV_CONFIG)
-    #             - script: yarn mocha --file ./$OUTPUT_NAME/test/mocha/config.js --timeout 30000 --exit ./$OUTPUT_NAME/test/database/**/*.spec.js
-    #       - job: service
-    #         dependsOn: only
-    #         displayName: Testing services
-    #         steps:
-    #             - task: NodeTool@0
-    #               inputs:
-    #                   versionSpec: '14.x'
-    #               displayName: 'Installing Node.js'
-    #             - task: DownloadPipelineArtifact@2
-    #               inputs:
-    #                   source: current
-    #                   artifact: $(OUTPUT_NAME)
-    #                   path: ./$(OUTPUT_NAME)
-    #             - task: CacheBeta@1
-    #               inputs:
-    #                   key: 'node_modules | "$(Agent.OS)" | package.json'
-    #                   path: node_modules
-    #               displayName: Retrieve Node modules cache
-    #             - script: printenv CONFIG_FILE >"./config.json"
-    #               env:
-    #                   CONFIG_FILE: $(DEV_CONFIG)
-    #             - script: yarn mocha --file ./$OUTPUT_NAME/test/mocha/config.js --timeout 90000 --exit ./$OUTPUT_NAME/test/database/**/*.spec.js
-    #       - job: integration
-    #         dependsOn: [database, service]
-    #         displayName: Testing integrations
-    #         steps:
-    #             - task: NodeTool@0
-    #               inputs:
-    #                   versionSpec: '14.x'
-    #               displayName: 'Installing Node.js'
-    #             - task: CacheBeta@1
-    #               inputs:
-    #                   key: 'node_modules | "$(Agent.OS)" | package.json'
-    #                   path: node_modules
-    #               displayName: Retrieve Node modules cache
-    #             - task: DownloadPipelineArtifact@2
-    #               inputs:
-    #                   source: current
-    #                   artifact: $(OUTPUT_NAME)
-    #                   path: ./$(OUTPUT_NAME)
-    #             - script: printenv CONFIG_FILE >"./config.json"
-    #               env:
-    #                   CONFIG_FILE: $(DEV_CONFIG)
-    #             - script: yarn mocha --file ./$OUTPUT_NAME/test/mocha/config.js --timeout 90000 --exit ./$OUTPUT_NAME/test/integration/**/*.spec.js
-    #       - job: api
-    #         dependsOn: [database, service]
-    #         displayName: Testing API
-    #         steps:
-    #             - task: NodeTool@0
-    #               inputs:
-    #                   versionSpec: '14.x'
-    #               displayName: 'Installing Node.js'
-    #             - task: CacheBeta@1
-    #               inputs:
-    #                   key: 'node_modules | "$(Agent.OS)" | package.json'
-    #                   path: node_modules
-    #               displayName: Retrieve Node modules cache
-    #             - task: DownloadPipelineArtifact@2
-    #               inputs:
-    #                   source: current
-    #                   artifact: $(OUTPUT_NAME)
-    #                   path: ./$(OUTPUT_NAME)
-    #             - script: printenv CONFIG_FILE >"./config.json"
-    #               env:
-    #                   CONFIG_FILE: $(DEV_CONFIG)
-    #             - script: yarn mocha --file ./$OUTPUT_NAME/test/mocha/config.js --timeout 30000 --exit ./$OUTPUT_NAME/test/generic/**/*.spec.js
-
     - stage: devDeployment
-      # dependsOn: test
-      condition: and(succeeded(), eq(variables['Build.SourceBranchName'],'dev'))
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'],'dev'),eq(variables['Build.SourceBranchName'],'better-clean')))
       displayName: Deploying to Dev servers
       jobs:
           - deployment: SpireDevVMDeploy
             displayName: Deploy to Dev cluster
+            workspace:
+                clean: all
             environment:
                 name: Dev
                 resourceType: VirtualMachine
@@ -193,95 +86,27 @@ stages:
                     maxParallel: 50%
                     deploy:
                         steps:
+                            - script: (! find $PIPELINE_WORKSPACE/$OUTPUT_NAME/api/endpoints -name customer* -type f )
                             - checkout: self
                               submodules: recursive
                               clean: true
+                            - script: (! find $PIPELINE_WORKSPACE/$OUTPUT_NAME/api/endpoints -name customer* -type f )
                             - task: CacheBeta@1
                               inputs:
                                   key: 'node_modules | "$(Agent.OS)" | package.json'
                                   path: node_modules
                               displayName: Retrieve Node modules cache
+                            - script: (! find $PIPELINE_WORKSPACE/$OUTPUT_NAME/api/endpoints -name customer* -type f )
                             - script: |
                                   mkdir --verbose ~/rest
+                                  sudo pm2 stop dev-rest
+                                  sudo rm --force ~/rest/*
                                   sudo cp --recursive --force --verbose $PIPELINE_WORKSPACE/$OUTPUT_NAME ~/rest
                                   sudo cp --recursive --force ./node_modules ~/rest
                                   sudo cp --force --verbose ./ecosystem.config.js ~/rest
-                                  sudo cp --force --verbose ./*.* ~/rest
                             - script: |
                                   cd ~/rest
                                   printenv CONFIG_FILE >"./config.json"
                                   sudo pm2 startOrReload ecosystem.config.js --only dev-rest
                               env:
                                   CONFIG_FILE: $(DEV_CONFIG)
-    - stage: qaDeployment
-      # dependsOn: test
-      condition: and(succeeded(), eq(variables['Build.SourceBranchName'],'qa'))
-      displayName: Deploying to QA servers
-      jobs:
-          - deployment: SpireQaVmDeploy
-            displayName: Deploy to QA cluster
-            environment:
-                name: QA
-                resourceType: VirtualMachine
-                tags: spire
-            strategy:
-                rolling:
-                    maxParallel: 50%
-                    deploy:
-                        steps:
-                            - checkout: self
-                              submodules: recursive
-                              clean: true
-                            - task: CacheBeta@1
-                              inputs:
-                                  key: 'node_modules | "$(Agent.OS)" | package.json'
-                                  path: node_modules
-                              displayName: Retrieve Node modules cache
-                            - script: |
-                                  mkdir --verbose ~/rest
-                                  sudo cp --recursive --force --verbose $PIPELINE_WORKSPACE/$OUTPUT_NAME ~/rest
-                                  sudo cp --recursive --force ./node_modules ~/rest
-                                  sudo cp --force --verbose ./ecosystem.config.js ~/rest
-                                  sudo cp --force --verbose ./*.* ~/rest
-                            - script: |
-                                  cd ~/rest
-                                  printenv CONFIG_FILE >"./config.json"
-                                  sudo pm2 startOrReload ecosystem.config.js --only qa-rest
-                              env:
-                                  CONFIG_FILE: $(QA_CONFIG)
-    - stage: uatDeployment
-      # dependsOn: test
-      condition: and(succeeded(), eq(variables['Build.SourceBranchName'],'uat'))
-      displayName: Deploying to UAT servers
-      jobs:
-          - deployment: SpireUatVmDeploy
-            displayName: Deploy to UAT cluster
-            environment:
-                name: UAT
-                resourceType: VirtualMachine
-                tags: spire
-            strategy:
-                rolling:
-                    maxParallel: 50%
-                    deploy:
-                        steps:
-                            - checkout: self
-                              submodules: recursive
-                              clean: true
-                            - task: CacheBeta@1
-                              inputs:
-                                  key: 'node_modules | "$(Agent.OS)" | package.json'
-                                  path: node_modules
-                              displayName: Retrieve Node modules cache
-                            - script: |
-                                  mkdir --verbose ~/rest
-                                  sudo cp --recursive --force --verbose $PIPELINE_WORKSPACE/$OUTPUT_NAME ~/rest
-                                  sudo cp --recursive --force ./node_modules ~/rest
-                                  sudo cp --force --verbose ./ecosystem.config.js ~/rest
-                                  sudo cp --force --verbose ./*.* ~/rest
-                            - script: |
-                                  cd ~/rest
-                                  printenv CONFIG_FILE >"./config.json"
-                                  sudo pm2 startOrReload ecosystem.config.js --only uat-rest
-                              env:
-                                  CONFIG_FILE: $(UAT_CONFIG)
