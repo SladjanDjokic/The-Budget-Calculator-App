@@ -60,12 +60,13 @@ export default class UserApi extends GeneralApi {
 	}
 
 	@boundMethod
-	@accessScopes('USER')
+	@publicUrl('POST', '/user')
 	async create(req: RsRequest<Api.User.Req.Create>, res: RsResponse<Api.User.Filtered>) {
 		const createdObj: Api.User.Filtered = await this.userService.create(
 			req.data,
 			req.hostname,
-			WebUtils.getCompanyId(req)
+			WebUtils.getCompanyId(req),
+			req.user
 		);
 		res.sendData(createdObj);
 	}

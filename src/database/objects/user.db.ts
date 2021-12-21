@@ -11,7 +11,7 @@ export default class User extends Table implements IUserTable {
 
 	private static readonly paymentServiceTypeName: Model.ServiceKeyType = 'PAYMENT';
 
-	async getUserDetails(userId: number): Promise<Api.Customer.Res.Get> {
+	async getUserDetails(userId: number): Promise<Api.User.Res.Detail> {
 		return await this.db.queryOne(
 			`SELECT
 				user.id,

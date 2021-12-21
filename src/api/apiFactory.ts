@@ -3,7 +3,6 @@ import Action from './endpoints/action.api';
 import Campaign from './endpoints/campaign.api';
 import Company from './endpoints/company.api';
 import Country from './endpoints/country.api';
-import Customer from './endpoints/customer.api';
 import Destination from './endpoints/destination.api';
 import Reservation from './endpoints/reservation.api';
 import Media from './endpoints/media.api';
@@ -30,7 +29,6 @@ const classes = {
 	campaign: Campaign,
 	company: Company,
 	country: Country,
-	customer: Customer,
 	destination: Destination,
 	experience: Experience,
 	feature: Feature,

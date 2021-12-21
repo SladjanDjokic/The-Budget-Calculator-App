@@ -92,8 +92,8 @@ export default class Brand extends GeneralApi {
 
 	@boundMethod
 	@accessScopes('ADMINISTRATION')
-	async exportBrandsReport(req: RsRequest<null>, res: RsResponse<any>) {
-		const result = await this.brandService.exportBrandsReport(WebUtils.getCompanyId(req));
+	async exportBrandsReport(req: RsRequest<null>, res: RsResponse<string>) {
+		const result = await this.brandService.exportBrandsReport(req.user?.companyId);
 		const date = new Date();
 		res.setHeader(
 			'Content-disposition',
@@ -105,7 +105,7 @@ export default class Brand extends GeneralApi {
 	@boundMethod
 	@accessScopes('ADMINISTRATION')
 	async exportBrandLocationReport(req: RsRequest<Api.Brand.Req.Location.Get>, res: RsResponse<string>) {
-		const result = await this.brandService.exportBrandLocationReport(req.data.id, WebUtils.getCompanyId(req));
+		const result = await this.brandService.exportBrandLocationReport(req.data.id, req.user?.companyId);
 		const date = new Date();
 		res.setHeader(
 			'Content-disposition',
@@ -144,7 +144,7 @@ export default class Brand extends GeneralApi {
 	@boundMethod
 	@accessScopes('ADMINISTRATION')
 	async exportLocationsOverviewReport(req: RsRequest<Api.Brand.Req.Get>, res: RsResponse<string>) {
-		const result = await this.brandService.exportLocationsOverviewReport(req.data.id, WebUtils.getCompanyId(req));
+		const result = await this.brandService.exportLocationsOverviewReport(req.data.id, req.user?.companyId);
 		const date = new Date();
 		res.setHeader(
 			'Content-disposition',
@@ -152,13 +152,25 @@ export default class Brand extends GeneralApi {
 				req.data.id
 			}_${date.getMonth()}-${date.getDate()}-${date.getFullYear()}.csv`
 		);
-		res.send(WebUtils.convertToCSV<Api.Brand.Res.Report>(result));
+		res.send(
+			WebUtils.convertToCSV<Api.Brand.Res.Report>(result, [
+				'ID',
+				'Location Name',
+				'Points Per Dollar',
+				'Point Cost',
+				'Cost To Merchant Per Dollar',
+				'Spire Revenue Per Dollar',
+				'Spire Revenue Per Point',
+				'Spire Revenue YTD',
+				'Loyalty Status'
+			])
+		);
 	}
 
 	@boundMethod
 	@accessScopes('ADMINISTRATION')
-	async getLocationsByPage(req: RsRequest<RedSky.PageQuery>, res: RsResponse<Api.Brand.Res.Location.Details[]>) {
-		const result = await this.brandService.getLocationsByPage(req.data);
+	async getLocationsByPage(req: RsRequest<Api.Brand.Req.Report>, res: RsResponse<Api.Brand.Res.Location.Details[]>) {
+		const result = await this.brandService.getLocationsByPage(req.data.id, req.data.pageQuery);
 		res.sendPaginated(result.data, result.total);
 	}
 

@@ -66,7 +66,13 @@ export default class BrandValidation extends Validation {
 		'brand/location/details'
 	);
 
-	'GET:location/paged' = JsonDecoder.object<RedSky.PageQuery>(this.pagedValidation, 'brand/location/paged');
+	'GET:location/paged' = JsonDecoder.object<Api.Brand.Req.Report>(
+		{
+			id: JsonDecoder.number,
+			pageQuery: JsonDecoder.object<RedSky.PageQuery>(this.pagedValidation, 'pageQuery')
+		},
+		'brand/location/paged'
+	);
 
 	'GET:location/reports' = JsonDecoder.object<Api.Brand.Req.Report>(
 		{

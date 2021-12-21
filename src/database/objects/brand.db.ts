@@ -1,6 +1,7 @@
 import IBrandTable from '../interfaces/IBrandTable';
 import Table from '../Table';
 import { DateUtils } from '../../utils/utils';
+import mysql from 'mysql';
 
 export default class Brand extends Table implements IBrandTable {
 	constructor(dbArgs) {
@@ -53,24 +54,17 @@ export default class Brand extends Table implements IBrandTable {
 	}
 
 	async exportReports(companyId: number): Promise<Api.Brand.Res.Report[]> {
-		const companyIdQuery = Table.buildCompanyIdQuery(companyId, 'brand');
-		let reports = await this.db.runQuery(
+		const companyIdQuery = Table.buildCompanyIdQuery(companyId, this.tableName);
+		return this.db.runQuery(
 			`
 			${Brand.reportSelect}
 		 	FROM brand 
 			LEFT JOIN (${Brand.brandSubquery}) report 
 				on report.brandId = brand.id
 		 	JOIN platformVariables on platformVariables.id = 1
-		 	WHERE ${companyIdQuery};`
+		 	WHERE ${companyIdQuery};`,
+			[]
 		);
-		reports = reports.map((report) => {
-			report.pointsPerDollar = report.ppd;
-			report.costPerPoint = report.cpp;
-			delete report.ppd;
-			delete report.cpp;
-			return report;
-		});
-		return reports;
 	}
 
 	async getDetails(brandId: number, companyId?: number): Promise<Api.Brand.Res.Details> {
@@ -179,7 +173,7 @@ export default class Brand extends Table implements IBrandTable {
 		TRUNCATE(COALESCE(brandRate.costPerPoint, companyRate.costPerPoint, 0), 4) as costPerPoint,
 		TRUNCATE(COALESCE(brandRate.pointsPerDollar, companyRate.pointsPerDollar, 0)* COALESCE(brandRate.costPerPoint, companyRate.costPerPoint, 0), 4) as costToMerchant,
 		TRUNCATE((COALESCE(brandRate.costPerPoint, companyRate.costPerPoint, 0) - platformVariables.redeemRatio)*COALESCE(brandRate.pointsPerDollar, companyRate.pointsPerDollar, 0), 4) spireRevenuePerDollar,
-		TRUNCATE(IFNULL(((COALESCE(brandRate.costPerPoint, companyRate.costPerPoint, 0) - platformVariables.redeemRatio)/COALESCE(brandRate.costPerPoint, companyRate.costPerPoint, 0))*100, 0), 4) as spireRevenuePerPoint,
+		TRUNCATE(IFNULL(((COALESCE(brandRate.costPerPoint, companyRate.costPerPoint, 0) - platformVariables.redeemRatio)/COALESCE(brandRate.costPerPoint, companyRate.costPerPoint, 0))*100, 0), 2) as spireRevenuePerPoint,
 		TRUNCATE(IFNULL(report.ytdTotal * (SELECT spireRevenuePerDollar), 0), 4) as spireYTDRevenue,
 		brand.loyaltyStatus as loyaltyStatus
 	`;

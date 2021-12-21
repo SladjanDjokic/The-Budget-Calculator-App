@@ -108,9 +108,15 @@ export default class BrandService extends Service {
 	}
 
 	getLocationsByPage(
+		brandId: number,
 		pageQuery: RedSky.PageQuery
 	): Promise<RedSky.RsPagedResponseData<Api.Brand.Res.Location.Details[]>> {
-		return this.brandLocationTable.getByPage(pageQuery.pagination, pageQuery.sort, pageQuery.filter);
+		return this.brandLocationTable.getLocationsByPage(
+			brandId,
+			pageQuery.pagination,
+			pageQuery.sort,
+			pageQuery.filter
+		);
 	}
 
 	create(brand: BrandToCreate): Promise<Model.Brand> {

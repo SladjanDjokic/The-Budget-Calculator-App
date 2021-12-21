@@ -99,7 +99,11 @@ export default class SabreReservationSystem extends ReservationSystem implements
 		const accommodationsFromDb = await this.accommodationTable.allForCompany(companyDetails.id);
 		const ratesFromDb = await this.rateTable.getByDestinationId(destinationId);
 		const rateDetails: Redis.AvailabilityRate[] = ratesFromDb.map((rate) => {
-			return { name: rate.name, description: rate.description, code: rate.code };
+			return {
+				name: StringUtils.removeLineEndings(rate.name),
+				description: StringUtils.removeLineEndings(rate.description),
+				code: rate.code
+			};
 		});
 		const [startDay] = SabreReservationSystem.formatBlockDates(month, year, daysInMonth);
 		const dateOptions: DateOptions = {
@@ -893,7 +897,7 @@ export default class SabreReservationSystem extends ReservationSystem implements
 
 	private static formatDailyPrice(
 		priceObj: ISabre.Model.ProductPricesDaily,
-		accommodationRate: Redis.AvailabilityRate,
+		rate: Redis.AvailabilityRate,
 		maxPrice: boolean,
 		minPrice: boolean,
 		minStay?: number,
@@ -903,7 +907,7 @@ export default class SabreReservationSystem extends ReservationSystem implements
 			total: NumberUtils.dollarsToCents(priceObj.Price.Amount),
 			currencyCode: priceObj.Price.CurrencyCode,
 			qtyAvailable: priceObj.AvailableInventory,
-			rate: accommodationRate,
+			rate,
 			maxPrice,
 			minPrice,
 			minStay,

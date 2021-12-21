@@ -601,23 +601,6 @@ declare namespace Api {
 		}
 	}
 
-	export namespace Customer {
-		export namespace Req {
-			export interface Create {
-				name: string;
-				primaryEmail: string;
-				password: string;
-			}
-
-			export interface Get {}
-		}
-		export namespace Res {
-			export interface Create extends User.Filtered {}
-
-			export interface Get extends User.Res.Detail {}
-		}
-	}
-
 	export namespace Destination {
 		export namespace Req {
 			export interface Get {

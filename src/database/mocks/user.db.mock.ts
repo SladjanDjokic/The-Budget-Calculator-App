@@ -59,7 +59,7 @@ export default class UserTableMock extends TableMock implements IUserTable {
 		if (users.length) this.lastId = Math.max(...users.map((u) => u.id));
 	}
 	getMultiplierForUser: (userId: number) => Promise<{ multiplier: number }>;
-	async getUserDetails(userId: number): Promise<Api.Customer.Res.Get> {
+	async getUserDetails(userId: number): Promise<Api.User.Res.Detail> {
 		const baseUser: Api.User.Filtered = await this.getById(userId);
 		return {
 			...baseUser,

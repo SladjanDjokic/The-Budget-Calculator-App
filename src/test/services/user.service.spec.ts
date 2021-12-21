@@ -218,7 +218,7 @@ describe('UserService', function () {
 		});
 		it('should get customer details', async () => {
 			userResource.existingUser.userRoleId = userResource.customerRole.id;
-			const customer: Api.Customer.Res.Get = await userService.getUserDetails(userResource.existingUser.id);
+			const customer: Api.User.Res.Detail = await userService.getUserDetails(userResource.existingUser.id);
 			chai.expect(customer).to.exist;
 			chai.expect(customer.id).to.equal(userResource.existingUser.id);
 			chai.expect(customer).to.haveOwnProperty('tierTitle');

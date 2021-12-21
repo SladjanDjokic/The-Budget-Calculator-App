@@ -20,6 +20,7 @@ import IUserCompletedCampaignTable from '../../database/interfaces/IUserComplete
 import CompanyService from '../company/company.service';
 import EmailService from '../email/email.service';
 import { ServiceName } from '../serviceFactory';
+import { RsRequest } from '../../@types/expressCustom';
 
 export interface UserToUpdate extends Api.User.Req.Update {
 	lastLoginOn?: Date | string;
@@ -145,8 +146,17 @@ export default class UserService extends Service {
 		return this.getUserDetails(cleanUser.id);
 	}
 
-	async create(userCreateObj: Api.User.Req.Create, hostname: string, companyId?: number): Promise<Api.User.Filtered> {
-		const userToCreate: UserToCreate = await this.formatUserAndSettingsToCreate(userCreateObj, companyId);
+	async create(
+		userCreateObj: Api.User.Req.Create,
+		hostname: string,
+		companyId?: number,
+		userMakingReq?: any
+	): Promise<Api.User.Filtered> {
+		const userToCreate: UserToCreate = await this.formatUserAndSettingsToCreate(
+			userCreateObj,
+			companyId,
+			userMakingReq
+		);
 		let user: Api.User.Filtered = await this.userTable.create(userToCreate);
 		if (userCreateObj.address) {
 			await this.userAddressTable.create({ ...userCreateObj.address, isDefault: 1, userId: user.id });
@@ -188,14 +198,6 @@ export default class UserService extends Service {
 		let adminUser: Api.User.Filtered = await this.userTable.create(adminToCreate);
 		await this.createUserPermission(adminUser.id, adminUser.userRoleId);
 		return adminUser;
-	}
-
-	async createCustomer(customerCreateObj: Api.Customer.Req.Create, hostname: string): Promise<Api.User.Filtered> {
-		await this.isValidToCreate(customerCreateObj);
-		const customerToCreate = await this.formatCustomerCreateObj(customerCreateObj);
-		const createdCustomer = await this.userTable.create(customerToCreate);
-		await this.sendSignupEmail(createdCustomer, hostname);
-		return await this.getById(createdCustomer.id);
 	}
 
 	async update(userId: number, userUpdateObj: UserToUpdate) {
@@ -475,25 +477,10 @@ export default class UserService extends Service {
 		return result.multiplier;
 	}
 
-	private async isValidToCreate(user: UserToCreate | Api.Customer.Req.Create | Api.User.Req.Create): Promise<void> {
+	private async isValidToCreate(user: UserToCreate | Api.User.Req.Create): Promise<void> {
 		if (!this.isValidEmailAddress(user.primaryEmail)) throw new RsError('BAD_REQUEST', 'Invalid email format');
 		let isUniqueEmail: boolean = await this.isEmailUnique(user.primaryEmail);
 		if (!isUniqueEmail) throw new RsError('DUPLICATE_EMAIL', 'Unable to create user. User email is not unique.');
-	}
-
-	private async formatCustomerCreateObj({ name, ...customerCreateObj }: Api.Customer.Req.Create) {
-		const nameList = name.split(' ');
-		const loyaltyMemberRole: Model.UserRole = await this.userTable.getLoyaltyMemberRole();
-		let customer = {
-			...customerCreateObj,
-			token: StringUtils.generateGuid(),
-			firstName: nameList.shift(),
-			lastName: nameList.join(' '),
-			userRoleId: loyaltyMemberRole.id
-		};
-		customer.primaryEmail = customer.primaryEmail.toLowerCase();
-		customer.password = (await bcrypt.hash(customer.password, null)) as string;
-		return this.sanitizeCustomerToCreate(customer);
 	}
 
 	private async formatAdminCreate(adminCreate: Api.User.Req.Create) {
@@ -508,16 +495,21 @@ export default class UserService extends Service {
 
 	private async formatUserAndSettingsToCreate(
 		userRequest: Api.User.Req.Create | GuestUserToCreate,
-		companyId?: number
+		companyId?: number,
+		userMakingReq?: any
 	): Promise<UserToCreate> {
 		await this.isValidToCreate(userRequest);
 		const userToCreate: UserToCreate = {
 			...userRequest,
-			accountNumber: this.getUserAccountNumber(companyId),
+			accountNumber: this.getUserAccountNumber(companyId || 0),
 			token: StringUtils.generateGuid(),
 			primaryEmail: userRequest.primaryEmail.toLowerCase()
 		};
-		if (companyId) userToCreate.companyId = companyId;
+
+		//if the user is not an admin; delete the userRoleId;
+		if (!userMakingReq || userMakingReq.userRoleId !== 1) delete userToCreate.userRoleId;
+
+		userToCreate.companyId = companyId || 0;
 		if (userRequest.password) {
 			userToCreate.password = await bcrypt.hash(userRequest.password, null);
 		}
@@ -631,16 +623,6 @@ export default class UserService extends Service {
 	private getUserAccountNumber(companyId: number) {
 		let dateTimeString = Date.now().toString();
 		return `${companyId}-${dateTimeString.slice(3, 6)}-${dateTimeString.slice(6, 13)}`;
-	}
-
-	private sanitizeCustomerToCreate(
-		customer: Omit<Api.Customer.Req.Create, 'newsLetter' | 'emailNotification' | 'name'>
-	) {
-		const invalidFields = ['newsLetter', 'emailNotification', 'name', 'address', 'city', 'state', 'zip', 'country'];
-		for (let i in customer) {
-			if (invalidFields.includes(i)) delete customer[i];
-		}
-		return customer;
 	}
 
 	private sanitizeUserToUpdate(user: Api.User.Req.Update): Api.User.Req.Update {

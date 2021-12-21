@@ -45,7 +45,7 @@ describe('Brand Location table', function () {
 	});
 	describe('Get By Page', function () {
 		it('should get brand locations and paginate', async function () {
-			const result = await table.getByPage(resource.pagination, resource.sort);
+			const result = await table.getLocationsByPage(1, resource.pagination, resource.sort);
 			expect(result).to.exist;
 			expect(result).to.haveOwnProperty('data');
 			expect(result).to.haveOwnProperty('total');
